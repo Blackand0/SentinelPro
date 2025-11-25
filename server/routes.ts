@@ -268,7 +268,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/printers", requireAuth, async (req, res) => {
     try {
-      const companyId = req.user.role === "super-admin" ? undefined : req.user.companyId;
+      let companyId: string | undefined;
+      
+      if (req.user.role === "super-admin") {
+        companyId = undefined; // Super-admin sees all
+      } else {
+        // Admin/Operator/Viewer MUST have companyId
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+        companyId = req.user.companyId;
+      }
+      
       const printers = await storage.getAllPrinters(companyId);
       res.json(printers);
     } catch (error) {
@@ -300,6 +311,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/printers/:id", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
     try {
+      const printer = await storage.getPrinter(req.params.id);
+      if (!printer) {
+        return res.status(404).send("Impresora no encontrada");
+      }
+
+      // Can only delete printers from own company
+      if (printer.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes eliminar impresoras de otra empresa");
+      }
+
       await storage.deletePrinter(req.params.id);
       res.json({ success: true });
     } catch (error) {
@@ -310,7 +331,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/print-jobs", requireAuth, async (req, res) => {
     try {
-      const companyId = req.user.role === "super-admin" ? undefined : req.user.companyId;
+      let companyId: string | undefined;
+      
+      if (req.user.role === "super-admin") {
+        companyId = undefined; // Super-admin sees all
+      } else {
+        // Admin/Operator/Viewer MUST have companyId
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+        companyId = req.user.companyId;
+      }
+      
       const jobs = await storage.getAllPrintJobs(companyId);
       res.json(jobs);
     } catch (error) {
@@ -353,6 +385,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!job) {
         return res.status(404).send("Print job not found");
       }
+
+      // Verify user's company access
+      if (req.user.role !== "super-admin" && job.user.companyId !== req.user.companyId) {
+        return res.status(403).send("No tienes acceso a este trabajo de impresión");
+      }
+
       res.json(job);
     } catch (error) {
       console.error("Get print job error:", error);
@@ -384,9 +422,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/consumption", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
     try {
+      // Admin/Operator must have companyId
+      if (!req.user.companyId) {
+        return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+      }
+
       const period = (req.query.period as string) || "month";
-      const companyId = req.user.companyId;
-      const stats = await storage.getConsumptionStats(period, companyId);
+      const stats = await storage.getConsumptionStats(period, req.user.companyId);
       res.json(stats);
     } catch (error) {
       console.error("Get consumption stats error:", error);
