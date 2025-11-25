@@ -7,15 +7,8 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-function getCsrfToken(): string | null {
-  const cookies = document.cookie.split(';');
-  for (const cookie of cookies) {
-    const [name, value] = cookie.trim().split('=');
-    if (name === 'XSRF-TOKEN') {
-      return decodeURIComponent(value);
-    }
-  }
-  return null;
+function getJwtToken(): string | null {
+  return localStorage.getItem("authToken");
 }
 
 export async function apiRequest<T = any>(
@@ -23,20 +16,17 @@ export async function apiRequest<T = any>(
   url: string,
   data?: unknown | undefined,
 ): Promise<T> {
-  const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
   
-  if (method !== "GET") {
-    const csrfToken = getCsrfToken();
-    if (csrfToken) {
-      headers["X-CSRF-Token"] = csrfToken;
-    }
+  const token = getJwtToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   const res = await fetch(url, {
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
   });
 
   await throwIfResNotOk(res);
@@ -49,8 +39,14 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    const headers: Record<string, string> = {};
+    const token = getJwtToken();
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
     const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
+      headers,
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

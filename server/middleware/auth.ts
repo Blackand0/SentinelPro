@@ -1,12 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import type { User } from "@shared/schema";
 import { storage } from "../storage";
-
-declare module "express-session" {
-  interface SessionData {
-    userId?: string;
-  }
-}
+import jwt from "jsonwebtoken";
 
 declare global {
   namespace Express {
@@ -21,19 +16,27 @@ export async function requireAuth(
   res: Response,
   next: NextFunction
 ) {
-  if (!req.session.userId) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).send("Unauthorized");
   }
 
-  const user = await storage.getUser(req.session.userId);
-  if (!user) {
-    req.session.userId = undefined;
+  const token = authHeader.substring(7);
+  const secret = process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production";
+
+  try {
+    const decoded = jwt.verify(token, secret) as { userId: string };
+    const user = await storage.getUser(decoded.userId);
+    if (!user) {
+      return res.status(401).send("Unauthorized");
+    }
+
+    const { password, ...userWithoutPassword } = user;
+    req.user = userWithoutPassword;
+    next();
+  } catch (err) {
     return res.status(401).send("Unauthorized");
   }
-
-  const { password, ...userWithoutPassword } = user;
-  req.user = userWithoutPassword;
-  next();
 }
 
 export function requireRole(roles: string[]) {

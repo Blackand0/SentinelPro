@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import express from "express";
-import session from "express-session";
 import multer from "multer";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
@@ -17,8 +17,6 @@ import {
   insertCompanySchema,
 } from "@shared/schema";
 import { z } from "zod";
-import MemoryStoreLib from "memorystore";
-import { PostgresSessionStore } from "./middleware/sessionStore";
 
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -43,40 +41,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
   }
 
-  let sessionStore;
-
-  if (process.env.NODE_ENV === "production" && process.env.DATABASE_URL) {
-    try {
-      sessionStore = new PostgresSessionStore(process.env.DATABASE_URL);
-      console.log("✅ Using PostgreSQL Session Store");
-    } catch (error) {
-      console.error("Failed to create PostgreSQL session store:", error);
-      const MemoryStore = MemoryStoreLib(session);
-      sessionStore = new MemoryStore({ checkPeriod: 86400000 });
-    }
-  } else {
-    const MemoryStore = MemoryStoreLib(session);
-    sessionStore = new MemoryStore({
-      checkPeriod: 86400000, // prune expired entries every 24h
-    });
-  }
-
-  app.use(
-    session({
-      store: sessionStore,
-      secret: process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production",
-      resave: true,
-      saveUninitialized: true,
-      cookie: {
-        secure: process.env.NODE_ENV === "production",
-        httpOnly: true,
-        sameSite: "lax",
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-      },
-    })
-  );
-
-  // Initialize database and super admin after session setup
+  // Initialize database and super admin
   await storage.initializeDatabase();
   await storage.initializeSuperAdmin();
 
@@ -149,11 +114,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword,
       });
 
-      // Set session - express-session will save and send Set-Cookie automatically
-      req.session.userId = user.id;
+      // Generate JWT token
+      const secret = process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production";
+      const token = jwt.sign({ userId: user.id }, secret, { expiresIn: "7d" });
 
       generateCsrfToken(req, res);
-      res.json({ ok: true });
+      res.json({ ok: true, token });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).send(error.errors[0].message);
@@ -177,22 +143,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).send("Invalid username or password");
       }
 
-      // Promisify regenerate
-      await new Promise<void>((resolve, reject) => {
-        req.session.regenerate((err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
+      // Generate JWT token
+      const secret = process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production";
+      const token = jwt.sign({ userId: user.id }, secret, { expiresIn: "7d" });
 
-      // Set user ID in regenerated session
-      req.session.userId = user.id;
-      console.log(`✅ Login: User ${user.id} → Session ${req.sessionID}`);
+      console.log(`✅ Login: User ${user.id} → JWT Token generated`);
 
-      // Express-session will automatically send Set-Cookie after save
-      // Don't call save() - just let express-session handle it when we respond
       generateCsrfToken(req, res);
-      res.json({ ok: true });
+      res.json({ ok: true, token });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).send(error.errors[0].message);
@@ -203,12 +161,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        return res.status(500).send("Logout failed");
-      }
-      res.json({ success: true });
-    });
+    // JWT doesn't require server-side logout - just clear on client
+    res.json({ success: true });
   });
 
   app.get("/api/auth/me", requireAuth, (req, res) => {
