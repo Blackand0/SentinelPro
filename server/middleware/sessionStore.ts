@@ -1,36 +1,40 @@
 import { EventEmitter } from "events";
 import { randomBytes } from "crypto";
 import type SessionStore from "express-session";
-import { drizzle } from "drizzle-orm/postgres-js";
-import { eq } from "drizzle-orm";
-import { pgTable, varchar, jsonb, timestamp } from "drizzle-orm/pg-core";
 import postgres from "postgres";
 
-const sessionTable = pgTable("session", {
-  sid: varchar("sid").primaryKey(),
-  sess: jsonb("sess").notNull(),
-  expire: timestamp("expire").notNull(),
-});
-
 export class PostgresSessionStore extends EventEmitter implements SessionStore {
-  private db: ReturnType<typeof drizzle>;
+  private sql: ReturnType<typeof postgres>;
 
   constructor(connectionString: string) {
     super();
-    const pgClient = postgres(connectionString, {
+    this.sql = postgres(connectionString, {
       ssl: "require",
     });
-    this.db = drizzle(pgClient);
+    this.ensureTable();
+  }
+
+  private async ensureTable() {
+    try {
+      await this.sql`
+        CREATE TABLE IF NOT EXISTS session (
+          sid VARCHAR PRIMARY KEY,
+          sess JSONB NOT NULL,
+          expire TIMESTAMP NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS session_expire_idx ON session(expire);
+      `;
+    } catch (error) {
+      console.error("Error ensuring session table:", error);
+    }
   }
 
   all(callback: (err: Error | null, obj?: Record<string, any> | null) => void): void {
-    this.db
-      .select()
-      .from(sessionTable)
-      .then((sessions) => {
+    this.sql`SELECT sid, sess FROM session WHERE expire > NOW()`
+      .then((rows) => {
         const obj: Record<string, any> = {};
-        sessions.forEach((session: any) => {
-          obj[session.sid] = session.sess;
+        rows.forEach((row: any) => {
+          obj[row.sid] = row.sess;
         });
         callback(null, obj);
       })
@@ -38,16 +42,12 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
   }
 
   get(sid: string, callback: (err: Error | null, session?: Record<string, any> | null) => void): void {
-    this.db
-      .select()
-      .from(sessionTable)
-      .where(eq(sessionTable.sid, sid))
-      .then((result) => {
-        if (!result[0]) {
+    this.sql`SELECT sess FROM session WHERE sid = ${sid} AND expire > NOW()`
+      .then((rows) => {
+        if (rows.length === 0) {
           callback(null, null);
         } else {
-          const session = result[0] as any;
-          callback(null, session.sess);
+          callback(null, rows[0].sess);
         }
       })
       .catch(callback);
@@ -60,20 +60,12 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
   ): void {
     const expire = new Date(session.cookie.expires || Date.now() + 24 * 60 * 60 * 1000);
 
-    this.db
-      .insert(sessionTable)
-      .values({
-        sid,
-        sess: session,
-        expire,
-      })
-      .onConflictDoUpdate({
-        target: sessionTable.sid,
-        set: {
-          sess: session,
-          expire,
-        },
-      })
+    this.sql`
+      INSERT INTO session (sid, sess, expire) 
+      VALUES (${sid}, ${JSON.stringify(session)}, ${expire})
+      ON CONFLICT (sid) DO UPDATE 
+      SET sess = EXCLUDED.sess, expire = EXCLUDED.expire
+    `
       .then(() => {
         callback?.(null);
       })
@@ -83,9 +75,7 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
   }
 
   destroy(sid: string, callback?: ((err?: Error | null) => void) | undefined): void {
-    this.db
-      .delete(sessionTable)
-      .where(eq(sessionTable.sid, sid))
+    this.sql`DELETE FROM session WHERE sid = ${sid}`
       .then(() => {
         callback?.(null);
       })
@@ -101,10 +91,7 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
   ): void {
     const expire = new Date(session.cookie.expires || Date.now() + 24 * 60 * 60 * 1000);
 
-    this.db
-      .update(sessionTable)
-      .set({ expire })
-      .where(eq(sessionTable.sid, sid))
+    this.sql`UPDATE session SET expire = ${expire} WHERE sid = ${sid}`
       .then(() => {
         callback?.(null);
       })
@@ -126,7 +113,7 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
       }
 
       const newSid = randomBytes(16).toString("hex");
-      
+
       if (session) {
         this.set(newSid, session, (err) => {
           if (err) {
