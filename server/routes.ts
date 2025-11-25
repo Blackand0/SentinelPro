@@ -72,6 +72,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })
   );
 
+  // Initialize super admin after session setup
+  await storage.initializeSuperAdmin();
+
   app.use("/uploads", express.static(uploadsDir));
 
   // Download file endpoint
