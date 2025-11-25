@@ -127,6 +127,7 @@ export type ConsumptionStats = {
 export type DashboardStats = {
   totalPrintJobs: number;
   totalUsers: number;
+  totalCompanies?: number;
   totalPrinters: number;
   totalPagesThisMonth: number;
   recentJobs: PrintJobWithDetails[];

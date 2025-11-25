@@ -39,7 +39,7 @@ export function AppSidebar() {
       title: "Trabajos de Impresión",
       url: "/print-jobs",
       icon: FileText,
-      roles: ["admin", "operator", "viewer", "super-admin"],
+      roles: ["admin", "operator", "viewer"],
     },
     {
       title: "Nuevo Trabajo",

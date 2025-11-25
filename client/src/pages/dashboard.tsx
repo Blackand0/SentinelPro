@@ -21,36 +21,51 @@ export default function DashboardPage() {
     queryKey: ["/api/dashboard"],
   });
 
-  const statCards = [
-    {
-      title: "Total Trabajos",
-      value: stats?.totalPrintJobs || 0,
-      icon: FileText,
-      color: "text-chart-1",
-    },
-    ...(user?.role === "super-admin" || user?.role === "admin"
-      ? [
-          {
-            title: "Usuarios Activos",
-            value: stats?.totalUsers || 0,
-            icon: Users,
-            color: "text-chart-2",
-          },
-        ]
-      : []),
-    {
-      title: "Impresoras Activas",
-      value: stats?.totalPrinters || 0,
-      icon: Printer,
-      color: "text-chart-3",
-    },
-    {
-      title: "Páginas Este Mes",
-      value: stats?.totalPagesThisMonth || 0,
-      icon: TrendingUp,
-      color: "text-chart-4",
-    },
-  ];
+  const statCards = user?.role === "super-admin" 
+    ? [
+        {
+          title: "Admins Activos",
+          value: stats?.totalUsers || 0,
+          icon: Users,
+          color: "text-chart-2",
+        },
+        {
+          title: "Empresas Activas",
+          value: stats?.totalCompanies || 0,
+          icon: FileText,
+          color: "text-chart-1",
+        },
+      ]
+    : [
+        {
+          title: "Total Trabajos",
+          value: stats?.totalPrintJobs || 0,
+          icon: FileText,
+          color: "text-chart-1",
+        },
+        ...(user?.role === "admin"
+          ? [
+              {
+                title: "Usuarios Activos",
+                value: stats?.totalUsers || 0,
+                icon: Users,
+                color: "text-chart-2",
+              },
+            ]
+          : []),
+        {
+          title: "Impresoras Activas",
+          value: stats?.totalPrinters || 0,
+          icon: Printer,
+          color: "text-chart-3",
+        },
+        {
+          title: "Páginas Este Mes",
+          value: stats?.totalPagesThisMonth || 0,
+          icon: TrendingUp,
+          color: "text-chart-4",
+        },
+      ];
 
   return (
     <div className="space-y-6">
@@ -85,6 +100,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {user?.role !== "super-admin" && (
       <Card>
         <CardHeader>
           <CardTitle>Trabajos Recientes</CardTitle>
@@ -152,8 +168,9 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+      )}
 
-      {stats?.topUsers && stats.topUsers.length > 0 && (
+      {user?.role !== "super-admin" && stats?.topUsers && stats.topUsers.length > 0 && (
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
@@ -203,6 +220,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+      )}
       )}
     </div>
   );

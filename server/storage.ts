@@ -349,6 +349,11 @@ export class PostgresStorage implements IStorage {
     const allPrinters = await this.getAllPrinters(companyId);
     const printerCount = allPrinters.length;
 
+    // Super-admin: count total companies
+    const totalCompanies = !companyId 
+      ? (await this.getAllCompanies()).length
+      : undefined;
+
     const topUsers = Array.from(
       filteredJobs
         .reduce((acc: Map<string, { username: string; count: number }>, job) => {
@@ -388,6 +393,7 @@ export class PostgresStorage implements IStorage {
     return {
       totalPrintJobs: filteredJobs.length,
       totalUsers: userCount,
+      totalCompanies,
       totalPrinters: printerCount,
       totalPagesThisMonth: pagesThisMonth,
       recentJobs: filteredJobs.slice(0, 10),
