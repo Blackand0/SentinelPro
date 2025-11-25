@@ -6,7 +6,7 @@ import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { loginSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
-import printerLogo from "@assets/generated_images/minimalist_printer_icon_for_favicon.png";
+import printerLogo from "@assets/../public/printer-logo.png";
 import {
   Form,
   FormControl,
@@ -71,8 +71,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <img src={printerLogo} alt="Sentinel Pro Logo" className="h-8 w-8" />
+          <div className="mx-auto">
+            <img src={printerLogo} alt="Sentinel Pro Logo" className="h-32 w-32 object-contain" />
           </div>
           <div>
             <CardTitle className="font-display text-3xl">Sentinel Pro</CardTitle>
