@@ -207,7 +207,9 @@ export class PostgresStorage implements IStorage {
     }
     
     const result = await query.orderBy(users.createdAt);
-    return result.map(({ password, ...user }) => user);
+    return result
+      .map(({ password, ...user }) => user)
+      .filter((u: any) => u.role !== "super-admin");
   }
 
   async deleteUser(id: string): Promise<void> {
