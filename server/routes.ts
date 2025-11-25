@@ -184,9 +184,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).send("Solo el Super Admin puede crear Admins");
       }
 
-      // Admin users must assign the user to their own company
-      if (req.user.role === "admin" && data.companyId !== req.user.companyId) {
-        return res.status(403).send("Solo puedes crear usuarios en tu empresa");
+      // Admin users must assign the user to their own company - FORCE it
+      if (req.user.role === "admin") {
+        data.companyId = req.user.companyId;
+        if (!data.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
       }
 
       const existingUsername = await storage.getUserByUsername(data.username);
