@@ -58,6 +58,7 @@ export const printers = pgTable("printers", {
   location: text("location").notNull(),
   model: text("model").notNull(),
   ipAddress: text("ip_address"),
+  companyId: varchar("company_id").references(() => companies.id),
   status: text("status").notNull().default("active"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -67,6 +68,7 @@ export const insertPrinterSchema = createInsertSchema(printers).omit({
   createdAt: true,
 }).extend({
   status: z.enum(["active", "inactive", "maintenance"]).default("active"),
+  companyId: z.string().optional(),
 });
 
 export type InsertPrinter = z.infer<typeof insertPrinterSchema>;

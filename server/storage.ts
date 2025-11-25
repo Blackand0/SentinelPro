@@ -23,17 +23,17 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  getAllUsers(): Promise<UserWithoutPassword[]>;
+  getAllUsers(companyId?: string): Promise<UserWithoutPassword[]>;
   getUsersByCompany(companyId?: string): Promise<UserWithoutPassword[]>;
   deleteUser(id: string): Promise<void>;
 
   getPrinter(id: string): Promise<Printer | undefined>;
-  getAllPrinters(): Promise<Printer[]>;
+  getAllPrinters(companyId?: string): Promise<Printer[]>;
   createPrinter(printer: InsertPrinter): Promise<Printer>;
   deletePrinter(id: string): Promise<void>;
 
   getPrintJob(id: string): Promise<PrintJobWithDetails | undefined>;
-  getAllPrintJobs(): Promise<PrintJobWithDetails[]>;
+  getAllPrintJobs(companyId?: string): Promise<PrintJobWithDetails[]>;
   createPrintJob(job: InsertPrintJob): Promise<PrintJob>;
 
   getCompany(id: string): Promise<Company | undefined>;
@@ -104,6 +104,7 @@ export class PostgresStorage implements IStorage {
           location text NOT NULL,
           model text NOT NULL,
           ip_address text,
+          company_id varchar REFERENCES companies(id),
           status text NOT NULL DEFAULT 'active',
           created_at timestamp NOT NULL DEFAULT now()
         );
@@ -185,11 +186,14 @@ export class PostgresStorage implements IStorage {
     return result[0];
   }
 
-  async getAllUsers(): Promise<UserWithoutPassword[]> {
-    const result = await db
-      .select()
-      .from(users)
-      .orderBy(users.createdAt);
+  async getAllUsers(companyId?: string): Promise<UserWithoutPassword[]> {
+    let query = db.select().from(users);
+    
+    if (companyId) {
+      query = query.where(eq(users.companyId, companyId));
+    }
+    
+    const result = await query.orderBy(users.createdAt);
     return result.map(({ password, ...user }) => user).filter((u: any) => u.role !== "super-admin");
   }
 
@@ -215,8 +219,14 @@ export class PostgresStorage implements IStorage {
     return result[0];
   }
 
-  async getAllPrinters(): Promise<Printer[]> {
-    return db.select().from(printers).orderBy(printers.createdAt);
+  async getAllPrinters(companyId?: string): Promise<Printer[]> {
+    let query = db.select().from(printers);
+    
+    if (companyId) {
+      query = query.where(eq(printers.companyId, companyId));
+    }
+    
+    return query.orderBy(printers.createdAt);
   }
 
   async createPrinter(insertPrinter: InsertPrinter): Promise<Printer> {
@@ -252,7 +262,7 @@ export class PostgresStorage implements IStorage {
     };
   }
 
-  async getAllPrintJobs(): Promise<PrintJobWithDetails[]> {
+  async getAllPrintJobs(companyId?: string): Promise<PrintJobWithDetails[]> {
     const jobs = await db.select().from(printJobs).orderBy(printJobs.printedAt);
     
     const jobsWithDetails: PrintJobWithDetails[] = [];
@@ -260,21 +270,24 @@ export class PostgresStorage implements IStorage {
       const user = await this.getUser(job.userId);
       const printer = await this.getPrinter(job.printerId);
 
-      if (user && printer) {
-        jobsWithDetails.push({
-          ...job,
-          user: {
-            id: user.id,
-            username: user.username,
-            fullName: user.fullName,
-          },
-          printer: {
-            id: printer.id,
-            name: printer.name,
-            location: printer.location,
-          },
-        });
-      }
+      if (!user || !printer) continue;
+      
+      // Filter by company if specified
+      if (companyId && user.companyId !== companyId) continue;
+
+      jobsWithDetails.push({
+        ...job,
+        user: {
+          id: user.id,
+          username: user.username,
+          fullName: user.fullName,
+        },
+        printer: {
+          id: printer.id,
+          name: printer.name,
+          location: printer.location,
+        },
+      });
     }
 
     return jobsWithDetails;
@@ -314,16 +327,9 @@ export class PostgresStorage implements IStorage {
   }
 
   async getDashboardStats(companyId?: string): Promise<DashboardStats> {
-    const allJobs = await this.getAllPrintJobs();
+    const filteredJobs = await this.getAllPrintJobs(companyId);
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-    const filteredJobs = companyId
-      ? allJobs.filter((job) => {
-          const user = Array.from([job.user]).find((u) => u.id === job.userId);
-          return user?.id === job.userId;
-        })
-      : allJobs;
 
     const jobsThisMonth = filteredJobs.filter(
       (job) => new Date(job.printedAt) >= firstDayOfMonth
@@ -334,12 +340,10 @@ export class PostgresStorage implements IStorage {
       0
     );
 
-    const allUsers = await db.select().from(users);
-    const userCount = companyId
-      ? allUsers.filter((u) => u.companyId === companyId && u.role !== "super-admin").length
-      : allUsers.filter((u) => u.role !== "super-admin").length;
+    const allUsers = await this.getAllUsers(companyId);
+    const userCount = allUsers.filter((u) => u.role !== "super-admin").length;
 
-    const allPrinters = await db.select().from(printers);
+    const allPrinters = await this.getAllPrinters(companyId);
     const printerCount = allPrinters.length;
 
     const topUsers = Array.from(
@@ -390,7 +394,7 @@ export class PostgresStorage implements IStorage {
   }
 
   async getConsumptionStats(period: string, companyId?: string): Promise<ConsumptionStats> {
-    const allJobs = await this.getAllPrintJobs();
+    const allJobs = await this.getAllPrintJobs(companyId);
     const now = new Date();
     let startDate: Date;
 
@@ -412,16 +416,9 @@ export class PostgresStorage implements IStorage {
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     }
 
-    const dateFilteredJobs = allJobs.filter(
+    const filteredJobs = allJobs.filter(
       (job) => new Date(job.printedAt) >= startDate
     );
-
-    const filteredJobs = companyId
-      ? dateFilteredJobs.filter((job) => {
-          const user = Array.from([job.user]).find((u) => u.id === job.userId);
-          return user?.id === job.userId;
-        })
-      : dateFilteredJobs;
 
     const totalPages = filteredJobs.reduce(
       (sum, job) => sum + job.pageCount * job.copies,

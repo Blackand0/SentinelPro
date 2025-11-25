@@ -167,9 +167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users", requireAuth, requireRole(["super-admin", "admin"]), async (req, res) => {
     try {
       const companyId = req.user?.role === "admin" ? req.user?.companyId : undefined;
-      const users = companyId
-        ? await storage.getUsersByCompany(companyId)
-        : await storage.getAllUsers();
+      const users = await storage.getAllUsers(companyId);
       res.json(users);
     } catch (error) {
       console.error("Get users error:", error);
@@ -184,6 +182,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Only super-admin can create other super-admins or admins
       if ((data.role === "super-admin" || data.role === "admin") && req.user.role !== "super-admin") {
         return res.status(403).send("Solo el Super Admin puede crear Admins");
+      }
+
+      // Admin users must assign the user to their own company
+      if (req.user.role === "admin" && data.companyId !== req.user.companyId) {
+        return res.status(403).send("Solo puedes crear usuarios en tu empresa");
       }
 
       const existingUsername = await storage.getUserByUsername(data.username);
@@ -226,7 +229,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/printers", requireAuth, async (req, res) => {
     try {
-      const printers = await storage.getAllPrinters();
+      const companyId = req.user?.role === "admin" ? req.user?.companyId : undefined;
+      const printers = await storage.getAllPrinters(companyId);
       res.json(printers);
     } catch (error) {
       console.error("Get printers error:", error);
@@ -237,6 +241,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/printers", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
     try {
       const data = insertPrinterSchema.parse(req.body);
+      
+      // Assign printer to user's company if admin/operator
+      const companyId = req.user?.companyId;
+      if (companyId) {
+        data.companyId = companyId;
+      }
+      
       const printer = await storage.createPrinter(data);
       res.json(printer);
     } catch (error) {
@@ -260,7 +271,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/print-jobs", requireAuth, async (req, res) => {
     try {
-      const jobs = await storage.getAllPrintJobs();
+      const companyId = req.user?.role === "admin" ? req.user?.companyId : undefined;
+      const jobs = await storage.getAllPrintJobs(companyId);
       res.json(jobs);
     } catch (error) {
       console.error("Get print jobs error:", error);
