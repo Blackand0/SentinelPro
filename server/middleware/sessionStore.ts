@@ -36,22 +36,27 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
   }
 
   all(callback: (err: Error | null, obj?: Record<string, any> | null) => void): void {
-    this.sql`SELECT sid, sess FROM session WHERE expire > NOW()`
-      .then((rows) => {
-        const obj: Record<string, any> = {};
-        rows.forEach((row: any) => {
-          try {
-            obj[row.sid] = typeof row.sess === "string" ? JSON.parse(row.sess) : row.sess;
-          } catch (e) {
-            console.error("Error parsing session:", e);
-          }
+    this.ready.then(() => {
+      this.sql`SELECT sid, sess FROM session WHERE expire > NOW()`
+        .then((rows) => {
+          const obj: Record<string, any> = {};
+          rows.forEach((row: any) => {
+            try {
+              obj[row.sid] = typeof row.sess === "string" ? JSON.parse(row.sess) : row.sess;
+            } catch (e) {
+              console.error("Error parsing session:", e);
+            }
+          });
+          callback(null, obj);
+        })
+        .catch((err) => {
+          console.error("Session all error:", err);
+          callback(err);
         });
-        callback(null, obj);
-      })
-      .catch((err) => {
-        console.error("Session all error:", err);
-        callback(err);
-      });
+    }).catch((err) => {
+      console.error("Session store not ready:", err);
+      callback(err);
+    });
   }
 
   get(sid: string, callback: (err: Error | null, session?: Record<string, any> | null) => void): void {
@@ -111,14 +116,19 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
   }
 
   destroy(sid: string, callback?: ((err?: Error | null) => void) | undefined): void {
-    this.sql`DELETE FROM session WHERE sid = ${sid}`
-      .then(() => {
-        callback?.(null);
-      })
-      .catch((err) => {
-        console.error("Session destroy error:", err);
-        callback?.(err);
-      });
+    this.ready.then(() => {
+      this.sql`DELETE FROM session WHERE sid = ${sid}`
+        .then(() => {
+          callback?.(null);
+        })
+        .catch((err) => {
+          console.error("Session destroy error:", err);
+          callback?.(err);
+        });
+    }).catch((err) => {
+      console.error("Session store not ready:", err);
+      callback?.(err);
+    });
   }
 
   touch(
@@ -126,16 +136,21 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
     session: Record<string, any>,
     callback?: ((err?: Error | null) => void) | undefined
   ): void {
-    const expire = new Date(session.cookie.expires || Date.now() + 24 * 60 * 60 * 1000);
+    this.ready.then(() => {
+      const expire = new Date(session.cookie.expires || Date.now() + 24 * 60 * 60 * 1000);
 
-    this.sql`UPDATE session SET expire = ${expire} WHERE sid = ${sid}`
-      .then(() => {
-        callback?.(null);
-      })
-      .catch((err) => {
-        console.error("Session touch error:", err);
-        callback?.(err);
-      });
+      this.sql`UPDATE session SET expire = ${expire} WHERE sid = ${sid}`
+        .then(() => {
+          callback?.(null);
+        })
+        .catch((err) => {
+          console.error("Session touch error:", err);
+          callback?.(err);
+        });
+    }).catch((err) => {
+      console.error("Session store not ready:", err);
+      callback?.(err);
+    });
   }
 
   regenerate(
