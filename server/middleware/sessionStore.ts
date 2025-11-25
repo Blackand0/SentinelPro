@@ -5,13 +5,14 @@ import postgres from "postgres";
 
 export class PostgresSessionStore extends EventEmitter implements SessionStore {
   private sql: ReturnType<typeof postgres>;
+  private ready: Promise<void>;
 
   constructor(connectionString: string) {
     super();
     this.sql = postgres(connectionString, {
       ssl: "require",
     });
-    this.ensureTable();
+    this.ready = this.ensureTable();
   }
 
   private async ensureTable() {
@@ -54,25 +55,30 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
   }
 
   get(sid: string, callback: (err: Error | null, session?: Record<string, any> | null) => void): void {
-    this.sql`SELECT sess FROM session WHERE sid = ${sid} AND expire > NOW()`
-      .then((rows) => {
-        if (rows.length === 0) {
-          callback(null, null);
-        } else {
-          try {
-            const sess = rows[0].sess;
-            const parsed = typeof sess === "string" ? JSON.parse(sess) : sess;
-            callback(null, parsed);
-          } catch (e) {
-            console.error("Error parsing session:", e);
+    this.ready.then(() => {
+      this.sql`SELECT sess FROM session WHERE sid = ${sid} AND expire > NOW()`
+        .then((rows) => {
+          if (rows.length === 0) {
             callback(null, null);
+          } else {
+            try {
+              const sess = rows[0].sess;
+              const parsed = typeof sess === "string" ? JSON.parse(sess) : sess;
+              callback(null, parsed);
+            } catch (e) {
+              console.error("Error parsing session:", e);
+              callback(null, null);
+            }
           }
-        }
-      })
-      .catch((err) => {
-        console.error("Session get error:", err);
-        callback(err);
-      });
+        })
+        .catch((err) => {
+          console.error("Session get error:", err);
+          callback(err);
+        });
+    }).catch((err) => {
+      console.error("Session store not ready:", err);
+      callback(err);
+    });
   }
 
   set(
@@ -80,22 +86,28 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
     session: Record<string, any>,
     callback?: ((err?: Error | null) => void) | undefined
   ): void {
-    const expire = new Date(session.cookie.expires || Date.now() + 24 * 60 * 60 * 1000);
-    const sessStr = JSON.stringify(session);
+    this.ready.then(() => {
+      const expire = new Date(session.cookie.expires || Date.now() + 24 * 60 * 60 * 1000);
+      const sessStr = JSON.stringify(session);
 
-    this.sql`
-      INSERT INTO session (sid, sess, expire) 
-      VALUES (${sid}, ${sessStr}, ${expire})
-      ON CONFLICT (sid) DO UPDATE 
-      SET sess = EXCLUDED.sess, expire = EXCLUDED.expire
-    `
-      .then(() => {
-        callback?.(null);
-      })
-      .catch((err) => {
-        console.error("Session set error:", err);
-        callback?.(err);
-      });
+      this.sql`
+        INSERT INTO session (sid, sess, expire) 
+        VALUES (${sid}, ${sessStr}, ${expire})
+        ON CONFLICT (sid) DO UPDATE 
+        SET sess = EXCLUDED.sess, expire = EXCLUDED.expire
+      `
+        .then(() => {
+          console.log(`✅ Session saved: ${sid}`);
+          callback?.(null);
+        })
+        .catch((err) => {
+          console.error("Session set error:", err);
+          callback?.(err);
+        });
+    }).catch((err) => {
+      console.error("Session store not ready:", err);
+      callback?.(err);
+    });
   }
 
   destroy(sid: string, callback?: ((err?: Error | null) => void) | undefined): void {
