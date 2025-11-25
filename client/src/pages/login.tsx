@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useAuth } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import printerLogo from "@assets/generated_images/modern_printer_icon_transparent.png";
 import type { User } from "@shared/schema";
 import type { z } from "zod";
 
@@ -71,7 +72,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4 text-center">
           <div className="mx-auto">
-            <img src="/printer-logo.png" alt="Sentinel Pro Logo" className="h-32 w-32 object-contain" />
+            <img src={printerLogo} alt="Sentinel Pro Logo" className="h-32 w-32 object-contain" />
           </div>
           <div>
             <CardTitle className="font-display text-3xl">Sentinel Pro</CardTitle>
