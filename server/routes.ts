@@ -184,6 +184,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).send("Invalid username or password");
       }
 
+      // Destroy old session
+      await new Promise<void>((resolve, reject) => {
+        req.session.destroy((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      // Create completely new session
       await new Promise<void>((resolve, reject) => {
         req.session.regenerate((err) => {
           if (err) reject(err);
@@ -191,11 +200,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
 
+      // Set user ID in new session
       req.session.userId = user.id;
+      console.log(`✅ Login: User ${user.id} → Session ${req.sessionID}`);
 
+      // Save the new session
       await new Promise<void>((resolve, reject) => {
         req.session.save((err) => {
-          if (err) reject(err);
+          if (err) {
+            console.error("Session save error:", err);
+            reject(err);
+          }
           else resolve();
         });
       });
