@@ -72,7 +72,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     })
   );
 
-  // Initialize super admin after session setup
+  // Initialize database and super admin after session setup
+  await storage.initializeDatabase();
   await storage.initializeSuperAdmin();
 
   app.use("/uploads", express.static(uploadsDir));
