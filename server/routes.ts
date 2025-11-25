@@ -158,6 +158,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
 
+      // Manually set session cookie using res.cookie()
+      res.cookie("connect.sid", req.sessionID, {
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/"
+      });
+
       generateCsrfToken(req, res);
 
       res.json({ ok: true });
@@ -207,19 +216,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
 
-      // Manually set Set-Cookie header (express-session middleware won't run after this handler)
-      const cookieConfig = req.sessionID && {
+      // Manually set session cookie using res.cookie() 
+      res.cookie("connect.sid", req.sessionID, {
         maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-      };
-      const secure = process.env.NODE_ENV === "production";
-      const sameSite = "Lax";
-      const httpOnly = "HttpOnly";
-      const path = "Path=/";
-      const maxAge = cookieConfig?.maxAge ? `Max-Age=${Math.floor(cookieConfig.maxAge / 1000)}` : "";
-      const secureFlag = secure ? "Secure" : "";
-      
-      const cookieValue = `connect.sid=${req.sessionID}; ${path}; ${httpOnly}; SameSite=${sameSite}; ${maxAge}${secureFlag ? "; " + secureFlag : ""}`;
-      res.setHeader("Set-Cookie", cookieValue);
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/"
+      });
 
       generateCsrfToken(req, res);
 
