@@ -197,16 +197,14 @@ export class PostgresStorage implements IStorage {
     return result.map(({ password, ...user }) => user).filter((u: any) => u.role !== "super-admin");
   }
 
-  async getUsersByCompany(companyId?: string): Promise<UserWithoutPassword[]> {
-    let query = db.select().from(users);
+  async getUsersByCompany(companyId: string): Promise<UserWithoutPassword[]> {
+    // ALWAYS filter by company - never return all users
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.companyId, companyId))
+      .orderBy(users.createdAt);
     
-    if (companyId) {
-      query = query.where(and(
-        eq(users.companyId, companyId)
-      ));
-    }
-    
-    const result = await query.orderBy(users.createdAt);
     return result
       .map(({ password, ...user }) => user)
       .filter((u: any) => u.role !== "super-admin");

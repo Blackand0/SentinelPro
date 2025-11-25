@@ -171,7 +171,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users", requireAuth, requireRole(["super-admin", "admin"]), async (req, res) => {
     try {
       if (req.user.role === "admin") {
-        // Admins see only their company users
+        // Admins see ONLY their company users - validate company assignment
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
         const companyUsers = await storage.getUsersByCompany(req.user.companyId);
         res.json(companyUsers);
       } else {
