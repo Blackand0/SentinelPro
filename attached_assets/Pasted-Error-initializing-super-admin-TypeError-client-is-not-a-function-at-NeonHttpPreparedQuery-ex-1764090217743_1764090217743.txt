@@ -1,0 +1,30 @@
+Error initializing super admin: TypeError: client is not a function
+    at NeonHttpPreparedQuery.execute (file:///opt/render/project/src/node_modules/drizzle-orm/neon-http/session.js:40:26)
+    at file:///opt/render/project/src/node_modules/drizzle-orm/pg-core/query-builders/select.js:708:30
+    at Object.startActiveSpan (file:///opt/render/project/src/node_modules/drizzle-orm/tracing.js:8:14)
+    at PgSelectBase.execute (file:///opt/render/project/src/node_modules/drizzle-orm/pg-core/query-builders/select.js:707:19)
+    at PgSelectBase.then (file:///opt/render/project/src/node_modules/drizzle-orm/query-promise.js:21:17)
+Error initializing super admin: TypeError: client is not a function
+    at NeonHttpPreparedQuery.execute (file:///opt/render/project/src/node_modules/drizzle-orm/neon-http/session.js:40:26)
+    at file:///opt/render/project/src/node_modules/drizzle-orm/pg-core/query-builders/select.js:708:30
+    at Object.startActiveSpan (file:///opt/render/project/src/node_modules/drizzle-orm/tracing.js:8:14)
+    at PgSelectBase.execute (file:///opt/render/project/src/node_modules/drizzle-orm/pg-core/query-builders/select.js:707:19)
+    at PgSelectBase.then (file:///opt/render/project/src/node_modules/drizzle-orm/query-promise.js:21:17)
+5:03:01 PM [express] serving on port 10000
+==> Your service is live 🎉
+==> 
+==> ///////////////////////////////////////////////////////////
+==> 
+==> Available at your primary URL https://sentinelpro.onrender.com
+==> 
+==> ///////////////////////////////////////////////////////////
+5:03:12 PM [express] GET /api/auth/me 401 in 4ms
+Login error: TypeError: client is not a function
+    at NeonHttpPreparedQuery.execute (file:///opt/render/project/src/node_modules/drizzle-orm/neon-http/session.js:40:26)
+    at file:///opt/render/project/src/node_modules/drizzle-orm/pg-core/query-builders/select.js:708:30
+    at Object.startActiveSpan (file:///opt/render/project/src/node_modules/drizzle-orm/tracing.js:8:14)
+    at PgSelectBase.execute (file:///opt/render/project/src/node_modules/drizzle-orm/pg-core/query-builders/select.js:707:19)
+    at PgSelectBase.then (file:///opt/render/project/src/node_modules/drizzle-orm/query-promise.js:21:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+5:03:17 PM [express] POST /api/auth/login 500 in 2ms
+Need better ways to work with logs? Try theRend

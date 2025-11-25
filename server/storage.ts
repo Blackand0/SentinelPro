@@ -48,10 +48,6 @@ export interface IStorage {
 const db = drizzle(process.env.DATABASE_URL!);
 
 export class PostgresStorage implements IStorage {
-  constructor() {
-    this.initializeSuperAdmin();
-  }
-
   async initializeSuperAdmin() {
     try {
       const bcrypt = await import("bcrypt");
@@ -364,6 +360,3 @@ export class PostgresStorage implements IStorage {
 }
 
 export const storage = new PostgresStorage();
-
-// Initialize super admin on startup
-storage.initializeSuperAdmin().catch(console.error);
