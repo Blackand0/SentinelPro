@@ -193,32 +193,40 @@ export default function PrintJobsPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            data-testid={`button-view-${job.id}`}
-                            onClick={() => {
-                              const filename = job.filePath.split('/').pop();
-                              if (filename) {
-                                window.open(`/api/files/view/${filename}`, '_blank');
-                              }
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            data-testid={`button-download-${job.id}`}
-                            onClick={() => {
-                              const filename = job.filePath.split('/').pop();
-                              if (filename) {
-                                window.location.href = `/api/files/download/${filename}`;
-                              }
-                            }}
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
+                          {(() => {
+                            const filename = job.filePath.split('/').pop();
+                            return (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  data-testid={`button-view-${job.id}`}
+                                  asChild
+                                >
+                                  <a
+                                    href={filename ? `/api/files/view/${filename}` : '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </a>
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  data-testid={`button-download-${job.id}`}
+                                  asChild
+                                >
+                                  <a
+                                    href={filename ? `/api/files/download/${filename}` : '#'}
+                                    download
+                                  >
+                                    <Download className="h-4 w-4" />
+                                  </a>
+                                </Button>
+                              </>
+                            );
+                          })()}
                         </div>
                       </TableCell>
                     </TableRow>
