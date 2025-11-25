@@ -44,9 +44,11 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
-      return await apiRequest<{ok: boolean}>("POST", "/api/auth/login", data);
+      return await apiRequest<{ok: boolean; token: string}>("POST", "/api/auth/login", data);
     },
-    onSuccess: async () => {
+    onSuccess: async (response) => {
+      // Save JWT token to localStorage
+      localStorage.setItem("authToken", response.token);
       await login();
       toast({
         title: "Inicio de sesión exitoso",

@@ -21,13 +21,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          setUser(null);
+          setIsLoading(false);
+          return;
+        }
+
         const response = await fetch("/api/auth/me", {
-          credentials: "include",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
         });
         if (response.ok) {
           const userData = await response.json();
           setUser(userData);
         } else {
+          localStorage.removeItem("authToken");
           setUser(null);
         }
       } catch (e) {
@@ -43,13 +53,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async () => {
     setIsLoading(true);
     try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+
       const response = await fetch("/api/auth/me", {
-        credentials: "include",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
       });
       if (response.ok) {
         const serverUser = await response.json();
         setUser(serverUser);
       } else {
+        localStorage.removeItem("authToken");
         setUser(null);
       }
     } catch (e) {
@@ -61,13 +81,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
+      const token = localStorage.getItem("authToken");
+      if (token) {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+      }
     } catch (e) {
       console.error("Logout error:", e);
     }
+    localStorage.removeItem("authToken");
     setUser(null);
     setLocation("/login");
   };

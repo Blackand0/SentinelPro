@@ -47,9 +47,11 @@ export default function RegisterPage() {
 
   const registerMutation = useMutation({
     mutationFn: async (data: z.infer<typeof insertUserSchema>) => {
-      return await apiRequest<{ok: boolean}>("POST", "/api/auth/register", data);
+      return await apiRequest<{ok: boolean; token: string}>("POST", "/api/auth/register", data);
     },
-    onSuccess: async () => {
+    onSuccess: async (response) => {
+      // Save JWT token to localStorage
+      localStorage.setItem("authToken", response.token);
       await login();
       toast({
         title: "Registro exitoso",

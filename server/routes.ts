@@ -118,7 +118,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const secret = process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production";
       const token = jwt.sign({ userId: user.id }, secret, { expiresIn: "7d" });
 
-      generateCsrfToken(req, res);
       res.json({ ok: true, token });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -149,7 +148,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`✅ Login: User ${user.id} → JWT Token generated`);
 
-      generateCsrfToken(req, res);
       res.json({ ok: true, token });
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -162,11 +160,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/logout", (req, res) => {
     // JWT doesn't require server-side logout - just clear on client
-    res.json({ success: true });
+    res.json({ ok: true });
   });
 
   app.get("/api/auth/me", requireAuth, (req, res) => {
-    generateCsrfToken(req, res);
     res.json(req.user);
   });
 
