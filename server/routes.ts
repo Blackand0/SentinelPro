@@ -265,7 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/printers", requireAuth, async (req, res) => {
     try {
-      const companyId = req.user?.role === "admin" ? req.user?.companyId : undefined;
+      const companyId = req.user.role === "super-admin" ? undefined : req.user.companyId;
       const printers = await storage.getAllPrinters(companyId);
       res.json(printers);
     } catch (error) {
@@ -307,7 +307,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/print-jobs", requireAuth, async (req, res) => {
     try {
-      const companyId = req.user?.role === "admin" ? req.user?.companyId : undefined;
+      const companyId = req.user.role === "super-admin" ? undefined : req.user.companyId;
       const jobs = await storage.getAllPrintJobs(companyId);
       res.json(jobs);
     } catch (error) {
@@ -359,7 +359,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/dashboard", requireAuth, async (req, res) => {
     try {
-      const companyId = req.user?.role === "admin" ? req.user?.companyId : undefined;
+      // Super-admin sees all data, others see only their company
+      const companyId = req.user.role === "super-admin" ? undefined : req.user.companyId;
       const stats = await storage.getDashboardStats(companyId);
       res.json(stats);
     } catch (error) {
@@ -371,7 +372,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/consumption", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
     try {
       const period = (req.query.period as string) || "month";
-      const companyId = req.user?.role === "admin" ? req.user?.companyId : undefined;
+      const companyId = req.user.companyId;
       const stats = await storage.getConsumptionStats(period, companyId);
       res.json(stats);
     } catch (error) {
