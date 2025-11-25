@@ -111,4 +111,33 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
         callback?.(err);
       });
   }
+
+  regenerate(
+    req: any,
+    callback?: ((err?: Error | null) => void) | undefined
+  ): void {
+    const oldSid = req.sessionID;
+    delete req.sessionID;
+
+    this.get(oldSid, (err, session) => {
+      if (err) {
+        return callback?.(err);
+      }
+
+      const newSid = require("crypto").randomBytes(16).toString("hex");
+      
+      if (session) {
+        this.set(newSid, session, (err) => {
+          if (err) {
+            return callback?.(err);
+          }
+          this.destroy(oldSid, (err) => {
+            callback?.(err);
+          });
+        });
+      } else {
+        callback?.(null);
+      }
+    });
+  }
 }

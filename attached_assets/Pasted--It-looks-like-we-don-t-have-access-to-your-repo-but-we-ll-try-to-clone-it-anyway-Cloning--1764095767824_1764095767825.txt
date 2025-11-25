@@ -1,0 +1,103 @@
+==> It looks like we don't have access to your repo, but we'll try to clone it anyway.
+==> Cloning from https://github.com/Blackand0/SentinelPro
+==> Checking out commit c19aa8cee46b764a18ccdb0acae3e0ecdeea8237 in branch main
+==> Using Node.js version 22.16.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'npm install; npm run build'...
+added 495 packages, and audited 496 packages in 11s
+66 packages are looking for funding
+  run `npm fund` for details
+9 vulnerabilities (3 low, 5 moderate, 1 high)
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+> sentinel-pro@1.0.0 build
+> vite build && esbuild server/index-prod.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+vite v5.4.20 building for production...
+transforming...
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+✓ 2151 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                                             0.99 kB │ gzip:   0.54 kB
+../dist/public/assets/modern_printer_icon_transparent-JedQNrFB.png  392.60 kB
+../dist/public/assets/index-DY7gJBJo.css                             70.69 kB │ gzip:  11.47 kB
+../dist/public/assets/index-BYZd-FKu.js                             572.32 kB │ gzip: 169.50 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.88s
+  dist/index.js  33.2kb
+⚡ Done in 42ms
+==> Uploading build...
+==> Uploaded in 5.6s. Compression took 54.5s
+==> Build successful 🎉
+==> Deploying...
+==> Running 'npm run start'
+> sentinel-pro@1.0.0 start
+> NODE_ENV=production node dist/index.js
+✅ Using PostgreSQL Session Store
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "companies" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '208',
+  routine: 'transformCreateStmt'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "users" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '208',
+  routine: 'transformCreateStmt'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "printers" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '208',
+  routine: 'transformCreateStmt'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "print_jobs" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '208',
+  routine: 'transformCreateStmt'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "session" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '208',
+  routine: 'transformCreateStmt'
+}
+✅ Database tables initialized
+6:35:20 PM [express] serving on port 10000
+==> Your service is live 🎉
+==> 
+==> ///////////////////////////////////////////////////////////
+==> 
+==> Available at your primary URL https://sentinelpro.onrender.com
+==> 
+==> ///////////////////////////////////////////////////////////
+6:35:43 PM [express] GET /api/auth/me 401 in 2ms
+Login error: TypeError: this.req.sessionStore.regenerate is not a function
+    at Session.regenerate (/opt/render/project/src/node_modules/express-session/session/session.js:124:25)
+    at req.session.userId (file:///opt/render/project/src/dist/index.js:696:21)
+    at new Promise (<anonymous>)
+    at file:///opt/render/project/src/dist/index.js:695:13
+6:35:48 PM [express] POST /api/auth/login 500 in 333ms
