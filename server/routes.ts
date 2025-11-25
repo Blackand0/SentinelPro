@@ -17,6 +17,8 @@ import {
   insertCompanySchema,
 } from "@shared/schema";
 import { z } from "zod";
+import MemoryStoreLib from "memorystore";
+import pgSession from "connect-pg-simple";
 
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -41,8 +43,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
   }
 
+  const MemoryStore = MemoryStoreLib(session);
+  
+  let sessionStore;
+  
+  if (process.env.NODE_ENV === "production" && process.env.DATABASE_URL) {
+    const PostgresStore = pgSession(session);
+    sessionStore = new PostgresStore({
+      conString: process.env.DATABASE_URL,
+      tableName: "session",
+    });
+  } else {
+    sessionStore = new MemoryStore();
+  }
+
   app.use(
     session({
+      store: sessionStore,
       secret: process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production",
       resave: false,
       saveUninitialized: false,
