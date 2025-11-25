@@ -340,14 +340,36 @@ export class PostgresStorage implements IStorage {
       0
     );
 
-    const allUsers = await this.getAllUsers(companyId);
-    // Super-admin sees only admin users, admins see their company users
-    const userCount = !companyId 
-      ? allUsers.filter((u) => u.role === "admin").length
-      : allUsers.filter((u) => u.role !== "super-admin").length;
+    let userCount = 0;
+    let printerCount = 0;
 
-    const allPrinters = await this.getAllPrinters(companyId);
-    const printerCount = allPrinters.length;
+    if (!companyId) {
+      // Super-admin: count only admin users
+      const allAdmins = await db.select().from(users).where(eq(users.role, "admin"));
+      userCount = allAdmins.length;
+    } else {
+      // Admin/Operator/Viewer: count ONLY their company users (excluding super-admin)
+      const companyUsers = await db
+        .select()
+        .from(users)
+        .where(and(
+          eq(users.companyId, companyId),
+          eq(users.role, "operator")
+        ));
+      userCount = companyUsers.length;
+    }
+
+    // Filter printers by company
+    if (companyId) {
+      const companyPrinters = await db
+        .select()
+        .from(printers)
+        .where(eq(printers.companyId, companyId));
+      printerCount = companyPrinters.length;
+    } else {
+      const allPrinters = await db.select().from(printers);
+      printerCount = allPrinters.length;
+    }
 
     // Super-admin: count total companies
     const totalCompanies = !companyId 

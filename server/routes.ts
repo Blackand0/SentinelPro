@@ -362,8 +362,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/dashboard", requireAuth, async (req, res) => {
     try {
-      // Super-admin sees all data, others see only their company
-      const companyId = req.user.role === "super-admin" ? undefined : req.user.companyId;
+      let companyId: string | undefined;
+      
+      if (req.user.role === "super-admin") {
+        companyId = undefined; // Super-admin sees everything
+      } else {
+        // Admin/Operator/Viewer MUST have companyId
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+        companyId = req.user.companyId;
+      }
+      
       const stats = await storage.getDashboardStats(companyId);
       res.json(stats);
     } catch (error) {
