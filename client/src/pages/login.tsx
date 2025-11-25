@@ -49,15 +49,15 @@ export default function LoginPage() {
     onSuccess: async () => {
       await login();
       toast({
-        title: "Login successful",
-        description: "Welcome back!",
+        title: "Inicio de sesión exitoso",
+        description: "¡Bienvenido de vuelta!",
       });
       setLocation("/");
     },
     onError: (error: Error) => {
       toast({
-        title: "Login failed",
-        description: error.message || "Invalid username or password",
+        title: "Error al iniciar sesión",
+        description: error.message || "Usuario o contraseña inválida",
         variant: "destructive",
       });
     },

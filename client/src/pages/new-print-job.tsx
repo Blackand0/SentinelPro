@@ -94,14 +94,14 @@ export default function NewPrintJobPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/print-jobs"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       toast({
-        title: "Print job created",
-        description: "Your print job has been recorded successfully",
+        title: "Trabajo registrado",
+        description: "El trabajo de impresión se ha registrado exitosamente",
       });
       setLocation("/print-jobs");
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to create print job",
+        title: "Error al registrar trabajo",
         description: error.message,
         variant: "destructive",
       });
@@ -123,8 +123,8 @@ export default function NewPrintJobPage() {
   const onSubmit = (data: z.infer<typeof insertPrintJobSchema>) => {
     if (!selectedFile) {
       toast({
-        title: "No file selected",
-        description: "Please select a file to upload",
+        title: "Sin archivo seleccionado",
+        description: "Por favor selecciona un archivo para cargar",
         variant: "destructive",
       });
       return;

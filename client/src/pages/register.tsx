@@ -52,15 +52,15 @@ export default function RegisterPage() {
     onSuccess: async () => {
       await login();
       toast({
-        title: "Registration successful",
-        description: "Welcome to Sentinel Pro!",
+        title: "Registro exitoso",
+        description: "¡Bienvenido a Sentinel Pro!",
       });
       setLocation("/");
     },
     onError: (error: Error) => {
       toast({
-        title: "Registration failed",
-        description: error.message || "Unable to create account",
+        title: "Error en el registro",
+        description: error.message || "No se pudo crear la cuenta",
         variant: "destructive",
       });
     },
