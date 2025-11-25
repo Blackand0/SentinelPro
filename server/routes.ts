@@ -222,6 +222,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/users/:id", requireAuth, requireRole(["super-admin", "admin"]), async (req, res) => {
     try {
+      const userToDelete = await storage.getUser(req.params.id);
+      if (!userToDelete) {
+        return res.status(404).send("Usuario no encontrado");
+      }
+
+      // Admin can only delete users from their own company
+      if (req.user.role === "admin" && userToDelete.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes eliminar usuarios de otra empresa");
+      }
+
+      // Cannot delete super-admin except by super-admin
+      if (userToDelete.role === "super-admin" && req.user.role !== "super-admin") {
+        return res.status(403).send("No puedes eliminar el Super Admin");
+      }
+
       await storage.deleteUser(req.params.id);
       res.json({ success: true });
     } catch (error) {
