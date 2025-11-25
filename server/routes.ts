@@ -65,12 +65,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     session({
       store: sessionStore,
       secret: process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production",
-      resave: true,
-      saveUninitialized: true,
+      resave: false,
+      saveUninitialized: false,
       cookie: {
         secure: process.env.NODE_ENV === "production",
         httpOnly: true,
-        sameSite: "strict",
+        sameSite: "lax",
         maxAge: 1000 * 60 * 60 * 24 * 7,
       },
     })
