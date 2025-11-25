@@ -158,14 +158,12 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
     callback?: ((err?: Error | null) => void) | undefined
   ): void {
     const oldSid = req.sessionID;
-    delete req.sessionID;
+    const newSid = randomBytes(16).toString("hex");
 
     this.get(oldSid, (err, session) => {
       if (err) {
         return callback?.(err);
       }
-
-      const newSid = randomBytes(16).toString("hex");
 
       if (session) {
         this.set(newSid, session, (err) => {
@@ -173,10 +171,16 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
             return callback?.(err);
           }
           this.destroy(oldSid, (err) => {
+            if (!err) {
+              req.sessionID = newSid;
+              console.log(`✅ Session regenerated: ${oldSid} → ${newSid}`);
+            }
             callback?.(err);
           });
         });
       } else {
+        req.sessionID = newSid;
+        console.log(`✅ Session regenerated (new): ${oldSid} → ${newSid}`);
         callback?.(null);
       }
     });
