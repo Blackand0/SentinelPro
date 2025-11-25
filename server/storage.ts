@@ -1,5 +1,6 @@
-import { drizzle } from "drizzle-orm/neon-http";
+import { drizzle } from "drizzle-orm/postgres-js";
 import { eq, and } from "drizzle-orm";
+import postgres from "postgres";
 import { users, printers, printJobs, companies } from "@shared/schema";
 import type {
   User,
@@ -45,7 +46,8 @@ export interface IStorage {
   getConsumptionStats(period: string, companyId?: string): Promise<ConsumptionStats>;
 }
 
-const db = drizzle(process.env.DATABASE_URL!);
+const sql = postgres(process.env.DATABASE_URL!);
+const db = drizzle(sql);
 
 export class PostgresStorage implements IStorage {
   async initializeSuperAdmin() {
