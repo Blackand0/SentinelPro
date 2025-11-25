@@ -74,6 +74,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.use("/uploads", express.static(uploadsDir));
 
+  // Download file endpoint
+  app.get("/api/files/download/:filename", requireAuth, (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const filePath = path.join(uploadsDir, filename);
+      
+      // Security: ensure file is within uploads directory
+      if (!filePath.startsWith(uploadsDir)) {
+        return res.status(403).send("Forbidden");
+      }
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).send("File not found");
+      }
+      
+      res.download(filePath);
+    } catch (error) {
+      console.error("Download file error:", error);
+      res.status(500).send("Failed to download file");
+    }
+  });
+
+  // View file endpoint
+  app.get("/api/files/view/:filename", requireAuth, (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const filePath = path.join(uploadsDir, filename);
+      
+      // Security: ensure file is within uploads directory
+      if (!filePath.startsWith(uploadsDir)) {
+        return res.status(403).send("Forbidden");
+      }
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).send("File not found");
+      }
+      
+      res.sendFile(filePath);
+    } catch (error) {
+      console.error("View file error:", error);
+      res.status(500).send("Failed to view file");
+    }
+  });
+
   app.use(validateCsrfToken);
 
   app.post("/api/auth/register", async (req, res) => {

@@ -97,9 +97,8 @@ export class PostgresStorage implements IStorage {
     const result = await db
       .select()
       .from(users)
-      .where(eq(users.role, "viewer"))
       .orderBy(users.createdAt);
-    return result.map(({ password, ...user }) => user);
+    return result.map(({ password, ...user }) => user).filter((u: any) => u.role !== "super-admin");
   }
 
   async getUsersByCompany(companyId?: string): Promise<UserWithoutPassword[]> {
@@ -200,7 +199,8 @@ export class PostgresStorage implements IStorage {
   }
 
   async getAllCompanies(): Promise<Company[]> {
-    return db.select().from(companies).orderBy(companies.createdAt);
+    const result = await db.select().from(companies).orderBy(companies.createdAt);
+    return result;
   }
 
   async createCompany(insertCompany: InsertCompany): Promise<Company> {
