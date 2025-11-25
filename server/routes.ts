@@ -44,23 +44,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
 
   const MemoryStore = MemoryStoreLib(session);
-  
-  let sessionStore;
-  
-  if (process.env.NODE_ENV === "production" && process.env.DATABASE_URL) {
-    const PostgresStore = pgSession(session);
-    sessionStore = new PostgresStore({
-      conString: process.env.DATABASE_URL,
-      tableName: "session",
-      pool: {
-        ssl: {
-          rejectUnauthorized: false,
-        },
-      },
-    });
-  } else {
-    sessionStore = new MemoryStore();
-  }
+  const sessionStore = new MemoryStore();
 
   app.use(
     session({
