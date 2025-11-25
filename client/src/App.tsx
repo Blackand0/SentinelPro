@@ -28,8 +28,8 @@ function AuthenticatedLayout() {
       <AppSidebar />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto p-6 flex justify-center">
-          <div className="mx-auto max-w-4xl w-full">
+        <main className="flex-1 overflow-y-auto p-6 flex items-start justify-center">
+          <div className="w-full max-w-5xl">
             <Switch>
               <Route path="/" component={DashboardPage} />
               <Route path="/print-jobs" component={PrintJobsPage} />
