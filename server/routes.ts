@@ -290,13 +290,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/printers", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
     try {
+      // Admin/Operator MUST have companyId
+      if (!req.user.companyId) {
+        return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+      }
+
       const data = insertPrinterSchema.parse(req.body);
       
-      // Assign printer to user's company if admin/operator
-      const companyId = req.user?.companyId;
-      if (companyId) {
-        data.companyId = companyId;
-      }
+      // FORCE assign printer to user's company
+      data.companyId = req.user.companyId;
       
       const printer = await storage.createPrinter(data);
       res.json(printer);

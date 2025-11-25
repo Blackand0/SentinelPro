@@ -151,6 +151,18 @@ export class PostgresStorage implements IStorage {
       
       if (!superAdminExists) {
         const hashedPassword = await bcrypt.default.hash("123456", 10);
+        
+        // Create default company
+        const defaultCompanyExists = await this.getCompany("00000000-0000-0000-0000-000000000010");
+        if (!defaultCompanyExists) {
+          await db.insert(companies).values({
+            id: "00000000-0000-0000-0000-000000000010",
+            name: "Empresa De Prueba",
+            email: "empresa.prueba@sentinel.cl",
+          }).onConflictDoNothing();
+        }
+        
+        // Create super admin
         await db.insert(users).values({
           id: "00000000-0000-0000-0000-000000000001",
           username: "sentinelpro",
@@ -158,8 +170,26 @@ export class PostgresStorage implements IStorage {
           email: "sentinelpro@sentinel.cl",
           fullName: "Sentinel Pro - Super Admin",
           role: "super-admin",
+          companyId: undefined, // Super admin has no company
         }).onConflictDoNothing();
+        
+        // Create default admin user for testing
+        const adminExists = await this.getUserByUsername("admin");
+        if (!adminExists) {
+          const adminPassword = await bcrypt.default.hash("123456", 10);
+          await db.insert(users).values({
+            id: "00000000-0000-0000-0000-000000000002",
+            username: "admin",
+            password: adminPassword,
+            email: "admin@empresa.prueba.cl",
+            fullName: "Administrador",
+            role: "admin",
+            companyId: "00000000-0000-0000-0000-000000000010",
+          }).onConflictDoNothing();
+        }
+        
         console.log("✅ Super admin created: sentinelpro / 123456");
+        console.log("✅ Test admin created: admin / 123456 (Empresa De Prueba)");
       }
     } catch (error) {
       console.error("Error initializing super admin:", error);
