@@ -96,8 +96,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // View file endpoint
-  app.get("/api/files/view/:filename", requireAuth, (req, res) => {
+  // View file endpoint - public access
+  app.get("/api/files/view/:filename", (req, res) => {
     try {
       const filename = req.params.filename;
       const filePath = path.join(uploadsDir, filename);
