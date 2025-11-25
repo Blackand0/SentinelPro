@@ -149,15 +149,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword,
       });
 
+      // Set session - express-session will save when response is sent (with resave: true)
       req.session.userId = user.id;
-
-      // Explicitly save session to ensure Set-Cookie is sent
-      await new Promise<void>((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) return reject(err);
-          resolve();
-        });
-      });
 
       generateCsrfToken(req, res);
 
@@ -185,25 +178,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).send("Invalid username or password");
       }
 
-      // Regenerate session with explicit save to ensure Set-Cookie is sent
-      await new Promise<void>((resolve, reject) => {
-        req.session.regenerate((err) => {
-          if (err) return reject(err);
+      // Regenerate session - this will create a new session ID
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error("Session regenerate error:", err);
+          return res.status(500).send("Login failed");
+        }
 
-          // Set user ID in new session
-          req.session.userId = user.id;
-          console.log(`✅ Login: User ${user.id} → Session ${req.sessionID}`);
+        // Set user ID in regenerated session
+        req.session.userId = user.id;
+        console.log(`✅ Login: User ${user.id} → Session ${req.sessionID}`);
 
-          // Explicitly save session to trigger Set-Cookie header
-          req.session.save((saveErr) => {
-            if (saveErr) return reject(saveErr);
-            resolve();
-          });
-        });
+        // Express-session will save this session and send Set-Cookie when res.json() is called
+        generateCsrfToken(req, res);
+        res.json({ ok: true });
       });
-
-      generateCsrfToken(req, res);
-      res.json({ ok: true });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).send(error.errors[0].message);
