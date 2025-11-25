@@ -60,28 +60,16 @@ export default function NewPrintJobPage() {
 
   const createJobMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const getCsrfToken = () => {
-        const cookies = document.cookie.split(';');
-        for (const cookie of cookies) {
-          const [name, value] = cookie.trim().split('=');
-          if (name === 'XSRF-TOKEN') {
-            return decodeURIComponent(value);
-          }
-        }
-        return null;
-      };
-
+      const token = localStorage.getItem("authToken");
       const headers: HeadersInit = {};
-      const csrfToken = getCsrfToken();
-      if (csrfToken) {
-        headers["X-CSRF-Token"] = csrfToken;
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
       }
 
       return await fetch("/api/print-jobs", {
         method: "POST",
         headers,
         body: formData,
-        credentials: "include",
       }).then(async (res) => {
         if (!res.ok) {
           const error = await res.text();
