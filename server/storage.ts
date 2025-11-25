@@ -250,19 +250,37 @@ export class PostgresStorage implements IStorage {
     const allPrinters = await db.select().from(printers);
     const printerCount = allPrinters.length;
 
-    const topUsers = filteredJobs
-      .reduce((acc: Map<string, { username: string; count: number }>, job) => {
-        const existing = acc.get(job.userId) || { username: job.user.fullName, count: 0 };
-        existing.count++;
-        acc.set(job.userId, existing);
-        return acc;
-      }, new Map())
-      .entries();
-
-    const topPrintersList = Array.from(topUsers)
+    const topUsers = Array.from(
+      filteredJobs
+        .reduce((acc: Map<string, { username: string; count: number }>, job) => {
+          const existing = acc.get(job.userId) || { username: job.user.fullName, count: 0 };
+          existing.count++;
+          acc.set(job.userId, existing);
+          return acc;
+        }, new Map())
+        .entries()
+    )
       .map(([userId, data]) => ({
         userId,
         username: data.username,
+        jobCount: data.count,
+      }))
+      .sort((a, b) => b.jobCount - a.jobCount)
+      .slice(0, 5);
+
+    const topPrinters = Array.from(
+      filteredJobs
+        .reduce((acc: Map<string, { printerName: string; count: number }>, job) => {
+          const existing = acc.get(job.printerId) || { printerName: job.printer.name, count: 0 };
+          existing.count++;
+          acc.set(job.printerId, existing);
+          return acc;
+        }, new Map())
+        .entries()
+    )
+      .map(([printerId, data]) => ({
+        printerId,
+        printerName: data.printerName,
         jobCount: data.count,
       }))
       .sort((a, b) => b.jobCount - a.jobCount)
@@ -274,15 +292,8 @@ export class PostgresStorage implements IStorage {
       totalPrinters: printerCount,
       totalPagesThisMonth: pagesThisMonth,
       recentJobs: filteredJobs.slice(0, 10),
-      topUsers: topPrintersList,
-      topPrinters: filteredJobs
-        .reduce((acc: Map<string, { printerName: string; count: number }>, job) => {
-          const existing = acc.get(job.printerId) || { printerName: job.printer.name, count: 0 };
-          existing.count++;
-          acc.set(job.printerId, existing);
-          return acc;
-        }, new Map())
-        .entries() as any,
+      topUsers: topUsers,
+      topPrinters: topPrinters,
     };
   }
 
