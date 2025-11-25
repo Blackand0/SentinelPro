@@ -46,7 +46,9 @@ export interface IStorage {
   getConsumptionStats(period: string, companyId?: string): Promise<ConsumptionStats>;
 }
 
-const sql = postgres(process.env.DATABASE_URL!);
+const sql = postgres(process.env.DATABASE_URL!, {
+  ssl: "require",
+});
 const db = drizzle(sql);
 
 export class PostgresStorage implements IStorage {
