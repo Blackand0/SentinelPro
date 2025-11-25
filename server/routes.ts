@@ -166,12 +166,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/users", requireAuth, requireRole(["super-admin", "admin"]), async (req, res) => {
     try {
-      // Super-admin sees ALL users, admins only see their company's users
-      const companyId = req.user?.role === "admin" ? req.user?.companyId : undefined;
-      const users = companyId 
-        ? await storage.getUsersByCompany(companyId)
-        : await storage.getAllUsers();
-      res.json(users);
+      if (req.user.role === "admin") {
+        // Admins see only their company users
+        const users = await storage.getUsersByCompany(req.user.companyId);
+        res.json(users);
+      } else {
+        // Super-admin sees ONLY admin users (one per company)
+        const adminUsers = await db
+          .select()
+          .from(users)
+          .where(eq(users.role, "admin"));
+        const result = adminUsers.map(({ password, ...user }) => user);
+        res.json(result);
+      }
     } catch (error) {
       console.error("Get users error:", error);
       res.status(500).send("Failed to fetch users");
@@ -240,8 +247,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).send("No puedes eliminar el Super Admin");
       }
 
-      // Delete associated print jobs first (cascade delete)
-      await db.delete(printJobs).where(eq(printJobs.userId, req.params.id));
+      // Delete associated print jobs first (use sql directly for simplicity)
+      await sql`DELETE FROM print_jobs WHERE user_id = ${req.params.id}`;
       
       // Then delete the user
       await storage.deleteUser(req.params.id);
@@ -395,30 +402,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/companies/:id", requireAuth, requireRole(["super-admin"]), async (req, res) => {
     try {
-      // Delete all print jobs for users in this company
-      const companyUsers = await db.select().from(users).where(eq(users.companyId, req.params.id));
-      const userIds = companyUsers.map(u => u.id);
+      // Delete in cascade order to avoid FK constraints
+      // 1. Delete all print jobs for users in this company
+      await sql`DELETE FROM print_jobs WHERE user_id IN (SELECT id FROM users WHERE company_id = ${req.params.id})`;
       
-      if (userIds.length > 0) {
-        // Delete print jobs for these users
-        await db.delete(printJobs).where(
-          db.query.printJobs.where((pj) => {
-            const condition: any[] = [];
-            for (const userId of userIds) {
-              condition.push(eq(printJobs.userId, userId));
-            }
-            return condition.length === 1 ? condition[0] : condition;
-          })
-        );
-        
-        // Delete users in this company
-        await db.delete(users).where(eq(users.companyId, req.params.id));
-      }
+      // 2. Delete users in this company
+      await db.delete(users).where(eq(users.companyId, req.params.id));
       
-      // Delete printers in this company
+      // 3. Delete printers in this company
       await db.delete(printers).where(eq(printers.companyId, req.params.id));
       
-      // Finally delete the company
+      // 4. Finally delete the company
       await storage.deleteCompany(req.params.id);
       res.json({ success: true });
     } catch (error) {
