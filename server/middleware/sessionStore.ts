@@ -19,15 +19,18 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
       await this.sql.unsafe(`
         CREATE TABLE IF NOT EXISTS session (
           sid VARCHAR PRIMARY KEY,
-          sess JSONB NOT NULL,
+          sess TEXT NOT NULL,
           expire TIMESTAMP NOT NULL
         );
       `);
       await this.sql.unsafe(`
         CREATE INDEX IF NOT EXISTS session_expire_idx ON session(expire);
       `);
-    } catch (error) {
-      console.error("Error ensuring session table:", error);
+      console.log("✅ Session table ensured");
+    } catch (error: any) {
+      if (!error.message?.includes("already exists")) {
+        console.error("Error ensuring session table:", error);
+      }
     }
   }
 
@@ -36,11 +39,18 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
       .then((rows) => {
         const obj: Record<string, any> = {};
         rows.forEach((row: any) => {
-          obj[row.sid] = row.sess;
+          try {
+            obj[row.sid] = typeof row.sess === "string" ? JSON.parse(row.sess) : row.sess;
+          } catch (e) {
+            console.error("Error parsing session:", e);
+          }
         });
         callback(null, obj);
       })
-      .catch(callback);
+      .catch((err) => {
+        console.error("Session all error:", err);
+        callback(err);
+      });
   }
 
   get(sid: string, callback: (err: Error | null, session?: Record<string, any> | null) => void): void {
@@ -49,8 +59,14 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
         if (rows.length === 0) {
           callback(null, null);
         } else {
-          const sess = rows[0].sess;
-          callback(null, typeof sess === "string" ? JSON.parse(sess) : sess);
+          try {
+            const sess = rows[0].sess;
+            const parsed = typeof sess === "string" ? JSON.parse(sess) : sess;
+            callback(null, parsed);
+          } catch (e) {
+            console.error("Error parsing session:", e);
+            callback(null, null);
+          }
         }
       })
       .catch((err) => {
@@ -65,11 +81,11 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
     callback?: ((err?: Error | null) => void) | undefined
   ): void {
     const expire = new Date(session.cookie.expires || Date.now() + 24 * 60 * 60 * 1000);
-    const sessJson = session;
+    const sessStr = JSON.stringify(session);
 
     this.sql`
       INSERT INTO session (sid, sess, expire) 
-      VALUES (${sid}, ${sessJson}::jsonb, ${expire})
+      VALUES (${sid}, ${sessStr}, ${expire})
       ON CONFLICT (sid) DO UPDATE 
       SET sess = EXCLUDED.sess, expire = EXCLUDED.expire
     `
@@ -88,6 +104,7 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
         callback?.(null);
       })
       .catch((err) => {
+        console.error("Session destroy error:", err);
         callback?.(err);
       });
   }
@@ -104,6 +121,7 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
         callback?.(null);
       })
       .catch((err) => {
+        console.error("Session touch error:", err);
         callback?.(err);
       });
   }
