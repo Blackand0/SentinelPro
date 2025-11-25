@@ -65,7 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     session({
       store: sessionStore,
       secret: process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production",
-      resave: false,
+      resave: true,
       saveUninitialized: true,
       cookie: {
         secure: process.env.NODE_ENV === "production",
@@ -151,22 +151,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       req.session.userId = user.id;
 
-      await new Promise<void>((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-
-      // Manually set session cookie using res.cookie()
-      res.cookie("connect.sid", req.sessionID, {
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/"
-      });
-
       generateCsrfToken(req, res);
 
       res.json({ ok: true });
@@ -193,41 +177,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).send("Invalid username or password");
       }
 
-      // Regenerate session (creates new, destroys old internally)
-      await new Promise<void>((resolve, reject) => {
-        req.session.regenerate((err) => {
-          if (err) reject(err);
-          else resolve();
-        });
+      // Regenerate session
+      req.session.regenerate((err) => {
+        if (err) {
+          console.error("Session regenerate error:", err);
+          return res.status(500).send("Login failed");
+        }
+
+        // Set user ID in new session
+        req.session.userId = user.id;
+        console.log(`✅ Login: User ${user.id} → Session ${req.sessionID}`);
+
+        generateCsrfToken(req, res);
+
+        res.json({ ok: true });
       });
-
-      // Set user ID in new session
-      req.session.userId = user.id;
-      console.log(`✅ Login: User ${user.id} → Session ${req.sessionID}`);
-
-      // Save the new session
-      await new Promise<void>((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) {
-            console.error("Session save error:", err);
-            reject(err);
-          }
-          else resolve();
-        });
-      });
-
-      // Manually set session cookie using res.cookie() 
-      res.cookie("connect.sid", req.sessionID, {
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/"
-      });
-
-      generateCsrfToken(req, res);
-
-      res.json({ ok: true });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).send(error.errors[0].message);
