@@ -152,25 +152,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set session
       req.session.userId = user.id;
 
-      // Manually save and set cookie
-      req.session.save((err) => {
-        if (err) {
-          console.error("Session save error:", err);
-          return res.status(500).send("Registration failed");
-        }
-
-        // Manually set the session cookie
-        res.cookie("connect.sid", req.sessionID, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          maxAge: 1000 * 60 * 60 * 24 * 7,
-          path: "/"
+      // Promisify session save
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) reject(err);
+          else resolve();
         });
-
-        generateCsrfToken(req, res);
-        res.json({ ok: true });
       });
+
+      // Set cookie with the session ID
+      res.cookie("connect.sid", req.sessionID, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        path: "/"
+      });
+
+      generateCsrfToken(req, res);
+      res.json({ ok: true });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).send(error.errors[0].message);
@@ -194,37 +194,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).send("Invalid username or password");
       }
 
-      // Regenerate session
-      req.session.regenerate((err) => {
-        if (err) {
-          console.error("Session regenerate error:", err);
-          return res.status(500).send("Login failed");
-        }
-
-        // Set user ID in regenerated session
-        req.session.userId = user.id;
-        console.log(`✅ Login: User ${user.id} → Session ${req.sessionID}`);
-
-        // Save the new session to store
-        req.session.save((saveErr) => {
-          if (saveErr) {
-            console.error("Session save error:", saveErr);
-            return res.status(500).send("Login failed");
-          }
-
-          // Manually set the session cookie with the new session ID
-          res.cookie("connect.sid", req.sessionID, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 1000 * 60 * 60 * 24 * 7,
-            path: "/"
-          });
-
-          generateCsrfToken(req, res);
-          res.json({ ok: true });
+      // Promisify regenerate
+      await new Promise<void>((resolve, reject) => {
+        req.session.regenerate((err) => {
+          if (err) reject(err);
+          else resolve();
         });
       });
+
+      // Set user ID in regenerated session
+      req.session.userId = user.id;
+      console.log(`✅ Login: User ${user.id} → Session ${req.sessionID}`);
+
+      // Promisify save
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
+      // Set cookie with the session ID
+      res.cookie("connect.sid", req.sessionID, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        path: "/"
+      });
+
+      generateCsrfToken(req, res);
+      res.json({ ok: true });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).send(error.errors[0].message);
