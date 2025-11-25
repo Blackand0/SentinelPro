@@ -6,7 +6,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import path from "path";
 import fs from "fs";
-import { storage } from "./storage";
+import { storage, db, sql } from "./storage";
 import { requireAuth, requireRole } from "./middleware/auth";
 import {
   insertUserSchema,
@@ -14,8 +14,12 @@ import {
   insertPrinterSchema,
   insertPrintJobSchema,
   insertCompanySchema,
+  users,
+  printers,
+  printJobs,
 } from "@shared/schema";
 import { z } from "zod";
+import { eq } from "drizzle-orm";
 
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -168,8 +172,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       if (req.user.role === "admin") {
         // Admins see only their company users
-        const users = await storage.getUsersByCompany(req.user.companyId);
-        res.json(users);
+        const companyUsers = await storage.getUsersByCompany(req.user.companyId);
+        res.json(companyUsers);
       } else {
         // Super-admin sees ONLY admin users (one per company)
         const adminUsers = await db
