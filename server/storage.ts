@@ -48,6 +48,31 @@ export interface IStorage {
 const db = drizzle(process.env.DATABASE_URL!);
 
 export class PostgresStorage implements IStorage {
+  constructor() {
+    this.initializeSuperAdmin();
+  }
+
+  async initializeSuperAdmin() {
+    try {
+      const bcrypt = await import("bcrypt");
+      const superAdminExists = await this.getUserByUsername("sentinelpro");
+      
+      if (!superAdminExists) {
+        const hashedPassword = await bcrypt.default.hash("123456", 10);
+        await db.insert(users).values({
+          id: "00000000-0000-0000-0000-000000000001",
+          username: "sentinelpro",
+          password: hashedPassword,
+          email: "sentinelpro@sentinel.cl",
+          fullName: "Sentinel Pro - Super Admin",
+          role: "super-admin",
+        }).onConflictDoNothing();
+      }
+    } catch (error) {
+      console.error("Error initializing super admin:", error);
+    }
+  }
+
   async getUser(id: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.id, id));
     return result[0];
@@ -328,3 +353,6 @@ export class PostgresStorage implements IStorage {
 }
 
 export const storage = new PostgresStorage();
+
+// Initialize super admin on startup
+storage.initializeSuperAdmin().catch(console.error);
