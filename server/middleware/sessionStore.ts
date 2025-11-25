@@ -16,14 +16,16 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
 
   private async ensureTable() {
     try {
-      await this.sql`
+      await this.sql.unsafe(`
         CREATE TABLE IF NOT EXISTS session (
           sid VARCHAR PRIMARY KEY,
           sess JSONB NOT NULL,
           expire TIMESTAMP NOT NULL
         );
+      `);
+      await this.sql.unsafe(`
         CREATE INDEX IF NOT EXISTS session_expire_idx ON session(expire);
-      `;
+      `);
     } catch (error) {
       console.error("Error ensuring session table:", error);
     }
@@ -47,10 +49,14 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
         if (rows.length === 0) {
           callback(null, null);
         } else {
-          callback(null, rows[0].sess);
+          const sess = rows[0].sess;
+          callback(null, typeof sess === "string" ? JSON.parse(sess) : sess);
         }
       })
-      .catch(callback);
+      .catch((err) => {
+        console.error("Session get error:", err);
+        callback(err);
+      });
   }
 
   set(
@@ -59,10 +65,11 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
     callback?: ((err?: Error | null) => void) | undefined
   ): void {
     const expire = new Date(session.cookie.expires || Date.now() + 24 * 60 * 60 * 1000);
+    const sessJson = session;
 
     this.sql`
       INSERT INTO session (sid, sess, expire) 
-      VALUES (${sid}, ${JSON.stringify(session)}, ${expire})
+      VALUES (${sid}, ${sessJson}::jsonb, ${expire})
       ON CONFLICT (sid) DO UPDATE 
       SET sess = EXCLUDED.sess, expire = EXCLUDED.expire
     `
@@ -70,6 +77,7 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
         callback?.(null);
       })
       .catch((err) => {
+        console.error("Session set error:", err);
         callback?.(err);
       });
   }
