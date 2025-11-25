@@ -1,3 +1,4 @@
+import { EventEmitter } from "events";
 import type SessionStore from "express-session";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq } from "drizzle-orm";
@@ -10,10 +11,11 @@ const sessionTable = pgTable("session", {
   expire: timestamp("expire").notNull(),
 });
 
-export class PostgresSessionStore implements SessionStore {
+export class PostgresSessionStore extends EventEmitter implements SessionStore {
   private db: ReturnType<typeof drizzle>;
 
   constructor(connectionString: string) {
+    super();
     const pgClient = postgres(connectionString, {
       ssl: "require",
     });

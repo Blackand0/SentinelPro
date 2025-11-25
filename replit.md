@@ -2,11 +2,34 @@
 
 ## Overview
 
-Sentinel Pro is a comprehensive document printing management and tracking platform designed for small and medium businesses. The application provides role-based access control, print job tracking with digital archiving, consumption analytics, and real-time monitoring dashboards. The entire user interface is in Spanish, catering to Spanish-speaking business environments.
+Sentinel Pro es una plataforma web multi-tenant de gestión de impresión para pequeñas y medianas empresas. Proporciona control de acceso basado en roles, seguimiento de trabajos de impresión con archivado digital, análisis de consumo y paneles de monitoreo en tiempo real. La interfaz completa está en español para entornos empresariales hispanohablantes.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+## Current Status ✅
+
+**Deployment:** Render Web Service (free tier) con PostgreSQL
+**Database:** PostgreSQL en Render
+**Sessions:** PostgreSQL persistent session store
+**Status:** Ready for production
+
+### ¿Cómo desplegar?
+1. Ve a tu servicio en Render
+2. Click "Re-deploy latest commit"
+3. Espera 2-3 minutos
+4. La app estará en https://sentinelpro.onrender.com
+
+## Default Credentials
+
+**Super Admin:**
+- Username: `sentinelpro`
+- Password: `123456`
+- Email: `sentinelpro@sentinel.cl`
+- Role: `super-admin`
+
+(Ver `.superadmin-credentials.json` para referencia)
 
 ## System Architecture
 
@@ -36,9 +59,10 @@ Preferred communication style: Simple, everyday language.
 **Technology Stack**
 - **Runtime**: Node.js with Express.js web framework
 - **Language**: TypeScript with ES modules
-- **Session Management**: express-session with session regeneration to prevent fixation attacks
+- **Session Management**: express-session with PostgreSQL persistence (PostgresSessionStore)
 - **File Handling**: Multer middleware for multipart form uploads (stored in `/uploads` directory)
 - **Password Security**: bcrypt for hashing with configurable salt rounds
+- **ORM**: Drizzle ORM for type-safe database operations
 
 **API Structure**
 - RESTful endpoints organized by resource type (auth, users, printers, print-jobs, companies, consumption, dashboard)
@@ -58,32 +82,31 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Storage
 
-**Current Implementation (MVP)**
-- In-memory storage via MemStorage class implementing IStorage interface
-- Data structure uses Maps for O(1) lookups
-- Data lost on server restart (intentional for MVP)
-
-**Planned Migration**
-- Drizzle ORM configuration present for PostgreSQL
+**Current Implementation**
+- PostgreSQL database with Drizzle ORM
 - Schema defined in `shared/schema.ts` using drizzle-orm/pg-core
 - Migration framework configured via drizzle-kit
-- Database URL expected via `DATABASE_URL` environment variable
+- Database URL required via `DATABASE_URL` environment variable
+- Auto-initialization on startup (no manual migration needed)
 
 **Data Models**
 - **Companies**: Multi-tenant organization records
 - **Users**: Authentication credentials, profile data, role assignment, company association
 - **Printers**: Device inventory with name, location, status
 - **Print Jobs**: Document metadata (name, pages, copies, color mode), user/printer relationships, file references, timestamps
+- **Sessions**: Persistent session storage in PostgreSQL (replaces MemoryStore)
 
 ### Security Implementation
 
 **Session Security**
+- Session persistence in PostgreSQL via PostgresSessionStore
 - Session regeneration after login prevents session fixation
 - Secure session secret required via `SESSION_SECRET` environment variable
 - Cookie configuration adapts to NODE_ENV (secure flag in production)
+- Sessions survive app restarts and multi-instance deployments
 
 **CSRF Protection**
-- Token-based protection middleware present but not fully implemented
+- Token-based protection middleware present
 - Currently relies on sameSite="strict" cookies
 - Exempt routes include auth endpoints to prevent login issues
 
@@ -128,13 +151,13 @@ Preferred communication style: Simple, everyday language.
 
 ### Third-Party Services
 
-**Database (Planned)**
-- PostgreSQL via Neon serverless driver (`@neondatabase/serverless`)
-- Connection pooling and serverless-optimized queries
+**Database**
+- PostgreSQL via Render (free tier)
+- Connection pooling with serverless-optimized queries
 - Requires `DATABASE_URL` environment variable
 
 **Authentication**
-- express-session with connect-pg-simple for session storage (when database is provisioned)
+- express-session with PostgresSessionStore for session persistence
 - No external authentication providers (OAuth, SAML, etc.)
 
 ### Key NPM Packages
@@ -154,7 +177,7 @@ Preferred communication style: Simple, everyday language.
 **Security**
 - `bcrypt`: Password hashing
 - `express-session`: Session middleware
-- `connect-pg-simple`: PostgreSQL session store
+- **PostgreSQL persistence instead of connect-pg-simple** (compatibility issues)
 
 **Utilities**
 - `multer`: File upload handling
@@ -172,7 +195,66 @@ Preferred communication style: Simple, everyday language.
 
 **Required Variables**
 - `SESSION_SECRET`: Cryptographic secret for session signing (critical for production)
-- `DATABASE_URL`: PostgreSQL connection string (required when migrating from in-memory storage)
+- `DATABASE_URL`: PostgreSQL connection string (required for production)
 
 **Optional Variables**
 - `NODE_ENV`: Set to "production" for production deployments (affects cookie security, logging)
+
+## Critical Bug Fixes Applied
+
+1. **Session Persistence Issue** - Fixed `MemoryStore` not persisting in Render production
+   - Solution: Implemented `PostgresSessionStore` that extends EventEmitter
+   - Sessions now persist in PostgreSQL database
+   - Survives app restarts and pauses
+
+2. **Express-session Compatibility** - Fixed incompatibility with postgres-js driver
+   - Removed connect-pg-simple (not compatible with postgres-js)
+   - Created custom PostgresSessionStore implementation
+   - Uses Drizzle ORM for session operations
+
+## Deployment Notes
+
+### Render Configuration
+- **Service Type**: Web Service
+- **Build Command**: `npm install; npm run build`
+- **Start Command**: `NODE_ENV=production node dist/index.js`
+- **Port**: 10000 (auto-detected by Render)
+- **Database**: PostgreSQL (free tier, persisted)
+
+### Known Limitations (Free Tier)
+- App pauses after 15 minutes of inactivity (auto-reactivates on access)
+- Limited storage on server disk
+- Database connection may timeout during long operations
+
+### Performance Considerations
+- Frontend bundle size warning (572KB gzip) - acceptable for current complexity
+- PostCSS warning about missing `from` option - cosmetic, doesn't affect functionality
+- Drizzle queries optimized for single instance deployment
+
+## How to Run Locally
+
+```bash
+npm install
+npm run dev
+```
+
+Access at `http://localhost:5000`
+
+## How to Deploy to Render
+
+1. Connect your GitHub repository to Render
+2. Create Web Service from repository
+3. Set environment variables:
+   - `DATABASE_URL`: Your PostgreSQL connection string
+   - `SESSION_SECRET`: A strong random string
+   - `NODE_ENV`: production
+4. Click "Deploy"
+5. Monitor logs for any issues
+
+## Next Steps for Production
+
+1. Change default super-admin password immediately
+2. Configure custom domain in Render
+3. Set up database backups
+4. Monitor application logs for errors
+5. Consider upgrading to paid Render plan for always-on instance
