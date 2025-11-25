@@ -149,12 +149,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword,
       });
 
-      // Set session - express-session will save when response is sent (with resave: true)
+      // Set session
       req.session.userId = user.id;
 
-      generateCsrfToken(req, res);
+      // Manually save and set cookie
+      req.session.save((err) => {
+        if (err) {
+          console.error("Session save error:", err);
+          return res.status(500).send("Registration failed");
+        }
 
-      res.json({ ok: true });
+        // Manually set the session cookie
+        res.cookie("connect.sid", req.sessionID, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 1000 * 60 * 60 * 24 * 7,
+          path: "/"
+        });
+
+        generateCsrfToken(req, res);
+        res.json({ ok: true });
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).send(error.errors[0].message);
@@ -178,7 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).send("Invalid username or password");
       }
 
-      // Regenerate session - this will create a new session ID
+      // Regenerate session
       req.session.regenerate((err) => {
         if (err) {
           console.error("Session regenerate error:", err);
@@ -189,9 +205,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         req.session.userId = user.id;
         console.log(`✅ Login: User ${user.id} → Session ${req.sessionID}`);
 
-        // Express-session will save this session and send Set-Cookie when res.json() is called
-        generateCsrfToken(req, res);
-        res.json({ ok: true });
+        // Save the new session to store
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error:", saveErr);
+            return res.status(500).send("Login failed");
+          }
+
+          // Manually set the session cookie with the new session ID
+          res.cookie("connect.sid", req.sessionID, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+            path: "/"
+          });
+
+          generateCsrfToken(req, res);
+          res.json({ ok: true });
+        });
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
