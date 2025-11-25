@@ -3,9 +3,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Printer, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { loginSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
+import printerLogo from "@assets/generated_images/minimalist_printer_icon_for_favicon.png";
 import {
   Form,
   FormControl,
@@ -71,7 +72,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Printer className="h-8 w-8" />
+            <img src={printerLogo} alt="Sentinel Pro Logo" className="h-8 w-8" />
           </div>
           <div>
             <CardTitle className="font-display text-3xl">Sentinel Pro</CardTitle>
