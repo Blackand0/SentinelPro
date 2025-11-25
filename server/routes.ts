@@ -18,6 +18,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import MemoryStoreLib from "memorystore";
+import { PostgresSessionStore } from "./middleware/sessionStore";
 
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -42,11 +43,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
   }
 
-  // Use MemoryStore for sessions - works reliably on Render
-  const MemoryStore = MemoryStoreLib(session);
-  const sessionStore = new MemoryStore({
-    checkPeriod: 86400000, // prune expired entries every 24h
-  });
+  let sessionStore;
+
+  if (process.env.NODE_ENV === "production" && process.env.DATABASE_URL) {
+    try {
+      sessionStore = new PostgresSessionStore(process.env.DATABASE_URL);
+      console.log("✅ Using PostgreSQL Session Store");
+    } catch (error) {
+      console.error("Failed to create PostgreSQL session store:", error);
+      const MemoryStore = MemoryStoreLib(session);
+      sessionStore = new MemoryStore({ checkPeriod: 86400000 });
+    }
+  } else {
+    const MemoryStore = MemoryStoreLib(session);
+    sessionStore = new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    });
+  }
 
   app.use(
     session({
