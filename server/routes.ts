@@ -136,6 +136,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       req.session.userId = user.id;
 
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+
       generateCsrfToken(req, res);
 
       res.json({ ok: true });
@@ -170,6 +177,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       req.session.userId = user.id;
+
+      await new Promise<void>((resolve, reject) => {
+        req.session.save((err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
 
       generateCsrfToken(req, res);
 
