@@ -184,15 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).send("Invalid username or password");
       }
 
-      // Destroy old session
-      await new Promise<void>((resolve, reject) => {
-        req.session.destroy((err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-
-      // Create completely new session
+      // Regenerate session (creates new, destroys old internally)
       await new Promise<void>((resolve, reject) => {
         req.session.regenerate((err) => {
           if (err) reject(err);
