@@ -341,7 +341,10 @@ export class PostgresStorage implements IStorage {
     );
 
     const allUsers = await this.getAllUsers(companyId);
-    const userCount = allUsers.filter((u) => u.role !== "super-admin").length;
+    // Super-admin sees only admin users, admins see their company users
+    const userCount = !companyId 
+      ? allUsers.filter((u) => u.role === "admin").length
+      : allUsers.filter((u) => u.role !== "super-admin").length;
 
     const allPrinters = await this.getAllPrinters(companyId);
     const printerCount = allPrinters.length;

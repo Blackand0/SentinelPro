@@ -33,13 +33,13 @@ export function AppSidebar() {
       title: "Panel",
       url: "/",
       icon: LayoutDashboard,
-      roles: ["admin", "operator", "viewer"],
+      roles: ["admin", "operator", "viewer", "super-admin"],
     },
     {
       title: "Trabajos de Impresión",
       url: "/print-jobs",
       icon: FileText,
-      roles: ["admin", "operator", "viewer"],
+      roles: ["admin", "operator", "viewer", "super-admin"],
     },
     {
       title: "Nuevo Trabajo",
