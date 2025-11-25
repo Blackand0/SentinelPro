@@ -19,6 +19,7 @@ import {
 import { z } from "zod";
 import MemoryStoreLib from "memorystore";
 import pgSession from "connect-pg-simple";
+import postgres from "postgres";
 
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -43,8 +44,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
   }
 
-  const MemoryStore = MemoryStoreLib(session);
-  const sessionStore = new MemoryStore();
+  let sessionStore;
+
+  if (process.env.NODE_ENV === "production" && process.env.DATABASE_URL) {
+    try {
+      // Create a pool for sessions in production
+      const pgPool = postgres(process.env.DATABASE_URL, {
+        ssl: "require",
+        idle_timeout: 30,
+        max_lifetime: 60 * 30,
+      });
+
+      const PostgresStore = pgSession(session);
+      sessionStore = new PostgresStore({
+        pool: pgPool,
+        tableName: "session",
+        createTableIfMissing: true,
+      });
+    } catch (error) {
+      console.error("Failed to create PostgreSQL session store, falling back to memory:", error);
+      const MemoryStore = MemoryStoreLib(session);
+      sessionStore = new MemoryStore();
+    }
+  } else {
+    const MemoryStore = MemoryStoreLib(session);
+    sessionStore = new MemoryStore();
+  }
 
   app.use(
     session({
