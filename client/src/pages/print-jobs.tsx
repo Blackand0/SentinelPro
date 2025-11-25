@@ -197,6 +197,12 @@ export default function PrintJobsPage() {
                             variant="ghost"
                             size="icon"
                             data-testid={`button-view-${job.id}`}
+                            onClick={() => {
+                              const filename = job.filePath.split('/').pop();
+                              if (filename) {
+                                window.open(`/api/files/view/${filename}`, '_blank');
+                              }
+                            }}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -204,6 +210,12 @@ export default function PrintJobsPage() {
                             variant="ghost"
                             size="icon"
                             data-testid={`button-download-${job.id}`}
+                            onClick={() => {
+                              const filename = job.filePath.split('/').pop();
+                              if (filename) {
+                                window.location.href = `/api/files/download/${filename}`;
+                              }
+                            }}
                           >
                             <Download className="h-4 w-4" />
                           </Button>
