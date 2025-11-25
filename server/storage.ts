@@ -1,3 +1,6 @@
+import { drizzle } from "drizzle-orm/neon-http";
+import { eq, and } from "drizzle-orm";
+import { users, printers, printJobs, companies } from "@shared/schema";
 import type {
   User,
   InsertUser,
@@ -8,8 +11,9 @@ import type {
   PrintJobWithDetails,
   DashboardStats,
   ConsumptionStats,
+  Company,
+  InsertCompany,
 } from "@shared/schema";
-import { randomUUID } from "crypto";
 
 type UserWithoutPassword = Omit<User, "password">;
 
@@ -41,161 +45,84 @@ export interface IStorage {
   getConsumptionStats(period: string, companyId?: string): Promise<ConsumptionStats>;
 }
 
-type Company = any;
-type InsertCompany = any;
+const db = drizzle(process.env.DATABASE_URL!);
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private printers: Map<string, Printer>;
-  private printJobs: Map<string, PrintJob>;
-  private companies: Map<string, Company>;
-
-  constructor() {
-    this.users = new Map();
-    this.printers = new Map();
-    this.printJobs = new Map();
-    this.companies = new Map();
-
-    // Seed super admin
-    this.initializeSuperAdmin();
-  }
-
-  private async initializeSuperAdmin() {
-    const bcrypt = await import("bcrypt");
-    const superAdminExists = Array.from(this.users.values()).find(
-      (user) => user.username === "sentinelpro"
-    );
-
-    if (!superAdminExists) {
-      const hashedPassword = await bcrypt.default.hash("123456", 10);
-      const id = "00000000-0000-0000-0000-000000000001";
-      const user: User = {
-        id,
-        username: "sentinelpro",
-        password: hashedPassword,
-        email: "sentinelpro@sentinel.cl",
-        fullName: "Sentinel Pro - Super Admin",
-        role: "super-admin",
-        createdAt: new Date(),
-      };
-      this.users.set(id, user);
-    }
-  }
-
+export class PostgresStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username
-    );
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find((user) => user.email === email);
+    const result = await db.select().from(users).where(eq(users.email, email));
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = {
-      ...insertUser,
-      id,
-      createdAt: new Date(),
-    };
-    this.users.set(id, user);
-    return user;
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
   }
 
   async getAllUsers(): Promise<UserWithoutPassword[]> {
-    const users = Array.from(this.users.values())
-      .filter((u) => u.role !== "super-admin")
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-
-    return users.map(({ password, ...userWithoutPassword }) => userWithoutPassword);
+    const result = await db
+      .select()
+      .from(users)
+      .where(eq(users.role, "viewer"))
+      .orderBy(users.createdAt);
+    return result.map(({ password, ...user }) => user);
   }
 
   async getUsersByCompany(companyId?: string): Promise<UserWithoutPassword[]> {
-    const users = Array.from(this.users.values())
-      .filter((u) => u.role !== "super-admin" && (!companyId || u.companyId === companyId))
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-
-    return users.map(({ password, ...userWithoutPassword }) => userWithoutPassword);
+    let query = db.select().from(users);
+    
+    if (companyId) {
+      query = query.where(and(
+        eq(users.companyId, companyId)
+      ));
+    }
+    
+    const result = await query.orderBy(users.createdAt);
+    return result.map(({ password, ...user }) => user);
   }
 
   async deleteUser(id: string): Promise<void> {
-    this.users.delete(id);
+    await db.delete(users).where(eq(users.id, id));
   }
 
   async getPrinter(id: string): Promise<Printer | undefined> {
-    return this.printers.get(id);
+    const result = await db.select().from(printers).where(eq(printers.id, id));
+    return result[0];
   }
 
   async getAllPrinters(): Promise<Printer[]> {
-    return Array.from(this.printers.values()).sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-    );
+    return db.select().from(printers).orderBy(printers.createdAt);
   }
 
   async createPrinter(insertPrinter: InsertPrinter): Promise<Printer> {
-    const id = randomUUID();
-    const printer: Printer = {
-      ...insertPrinter,
-      id,
-      createdAt: new Date(),
-    };
-    this.printers.set(id, printer);
-    return printer;
+    const result = await db.insert(printers).values(insertPrinter).returning();
+    return result[0];
   }
 
   async deletePrinter(id: string): Promise<void> {
-    this.printers.delete(id);
-  }
-
-  async getCompany(id: string): Promise<Company | undefined> {
-    return this.companies.get(id);
-  }
-
-  async getAllCompanies(): Promise<Company[]> {
-    return Array.from(this.companies.values()).sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-    );
-  }
-
-  async createCompany(insertCompany: InsertCompany): Promise<Company> {
-    const id = randomUUID();
-    const company: Company = {
-      ...insertCompany,
-      id,
-      createdAt: new Date(),
-    };
-    this.companies.set(id, company);
-    return company;
-  }
-
-  async deleteCompany(id: string): Promise<void> {
-    this.companies.delete(id);
-  }
-
-  async updateCompanyAdmin(id: string, adminId: string | null): Promise<Company | undefined> {
-    const company = this.companies.get(id);
-    if (!company) return undefined;
-    const updated = { ...company, adminId: adminId || undefined };
-    this.companies.set(id, updated);
-    return updated;
+    await db.delete(printers).where(eq(printers.id, id));
   }
 
   async getPrintJob(id: string): Promise<PrintJobWithDetails | undefined> {
-    const job = this.printJobs.get(id);
-    if (!job) return undefined;
+    const job = await db.select().from(printJobs).where(eq(printJobs.id, id));
+    if (!job[0]) return undefined;
 
-    const user = await this.getUser(job.userId);
-    const printer = await this.getPrinter(job.printerId);
+    const user = await this.getUser(job[0].userId);
+    const printer = await this.getPrinter(job[0].printerId);
 
     if (!user || !printer) return undefined;
 
     return {
-      ...job,
+      ...job[0],
       user: {
         id: user.id,
         username: user.username,
@@ -210,12 +137,9 @@ export class MemStorage implements IStorage {
   }
 
   async getAllPrintJobs(): Promise<PrintJobWithDetails[]> {
-    const jobs = Array.from(this.printJobs.values()).sort(
-      (a, b) => b.printedAt.getTime() - a.printedAt.getTime()
-    );
-
+    const jobs = await db.select().from(printJobs).orderBy(printJobs.printedAt);
+    
     const jobsWithDetails: PrintJobWithDetails[] = [];
-
     for (const job of jobs) {
       const user = await this.getUser(job.userId);
       const printer = await this.getPrinter(job.printerId);
@@ -241,14 +165,35 @@ export class MemStorage implements IStorage {
   }
 
   async createPrintJob(insertJob: InsertPrintJob): Promise<PrintJob> {
-    const id = randomUUID();
-    const job: PrintJob = {
-      ...insertJob,
-      id,
-      printedAt: new Date(),
-    };
-    this.printJobs.set(id, job);
-    return job;
+    const result = await db.insert(printJobs).values(insertJob).returning();
+    return result[0];
+  }
+
+  async getCompany(id: string): Promise<Company | undefined> {
+    const result = await db.select().from(companies).where(eq(companies.id, id));
+    return result[0];
+  }
+
+  async getAllCompanies(): Promise<Company[]> {
+    return db.select().from(companies).orderBy(companies.createdAt);
+  }
+
+  async createCompany(insertCompany: InsertCompany): Promise<Company> {
+    const result = await db.insert(companies).values(insertCompany).returning();
+    return result[0];
+  }
+
+  async deleteCompany(id: string): Promise<void> {
+    await db.delete(companies).where(eq(companies.id, id));
+  }
+
+  async updateCompanyAdmin(id: string, adminId: string | null): Promise<Company | undefined> {
+    const result = await db
+      .update(companies)
+      .set({ adminId: adminId || undefined })
+      .where(eq(companies.id, id))
+      .returning();
+    return result[0];
   }
 
   async getDashboardStats(companyId?: string): Promise<DashboardStats> {
@@ -256,11 +201,10 @@ export class MemStorage implements IStorage {
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Filter jobs by company if specified
     const filteredJobs = companyId
       ? allJobs.filter((job) => {
-          const user = Array.from(this.users.values()).find((u) => u.id === job.userId);
-          return user?.companyId === companyId;
+          const user = Array.from([job.user]).find((u) => u.id === job.userId);
+          return user?.id === job.userId;
         })
       : allJobs;
 
@@ -273,42 +217,24 @@ export class MemStorage implements IStorage {
       0
     );
 
-    const users = companyId
-      ? Array.from(this.users.values()).filter(
-          (u) => u.companyId === companyId && u.role !== "super-admin"
-        )
-      : Array.from(this.users.values()).filter((u) => u.role !== "super-admin");
+    const allUsers = await db.select().from(users);
+    const userCount = companyId
+      ? allUsers.filter((u) => u.companyId === companyId && u.role !== "super-admin").length
+      : allUsers.filter((u) => u.role !== "super-admin").length;
 
-    const userJobCounts = new Map<string, { username: string; count: number }>();
-    filteredJobs.forEach((job) => {
-      const existing = userJobCounts.get(job.userId);
-      if (existing) {
+    const allPrinters = await db.select().from(printers);
+    const printerCount = allPrinters.length;
+
+    const topUsers = filteredJobs
+      .reduce((acc: Map<string, { username: string; count: number }>, job) => {
+        const existing = acc.get(job.userId) || { username: job.user.fullName, count: 0 };
         existing.count++;
-      } else {
-        userJobCounts.set(job.userId, {
-          username: job.user.fullName,
-          count: 1,
-        });
-      }
-    });
+        acc.set(job.userId, existing);
+        return acc;
+      }, new Map())
+      .entries();
 
-    const printerJobCounts = new Map<
-      string,
-      { printerName: string; count: number }
-    >();
-    filteredJobs.forEach((job) => {
-      const existing = printerJobCounts.get(job.printerId);
-      if (existing) {
-        existing.count++;
-      } else {
-        printerJobCounts.set(job.printerId, {
-          printerName: job.printer.name,
-          count: 1,
-        });
-      }
-    });
-
-    const topUsers = Array.from(userJobCounts.entries())
+    const topPrintersList = Array.from(topUsers)
       .map(([userId, data]) => ({
         userId,
         username: data.username,
@@ -317,23 +243,21 @@ export class MemStorage implements IStorage {
       .sort((a, b) => b.jobCount - a.jobCount)
       .slice(0, 5);
 
-    const topPrinters = Array.from(printerJobCounts.entries())
-      .map(([printerId, data]) => ({
-        printerId,
-        printerName: data.printerName,
-        jobCount: data.count,
-      }))
-      .sort((a, b) => b.jobCount - a.jobCount)
-      .slice(0, 5);
-
     return {
       totalPrintJobs: filteredJobs.length,
-      totalUsers: users.length,
-      totalPrinters: this.printers.size,
+      totalUsers: userCount,
+      totalPrinters: printerCount,
       totalPagesThisMonth: pagesThisMonth,
       recentJobs: filteredJobs.slice(0, 10),
-      topUsers,
-      topPrinters,
+      topUsers: topPrintersList,
+      topPrinters: filteredJobs
+        .reduce((acc: Map<string, { printerName: string; count: number }>, job) => {
+          const existing = acc.get(job.printerId) || { printerName: job.printer.name, count: 0 };
+          existing.count++;
+          acc.set(job.printerId, existing);
+          return acc;
+        }, new Map())
+        .entries() as any,
     };
   }
 
@@ -366,8 +290,8 @@ export class MemStorage implements IStorage {
 
     const filteredJobs = companyId
       ? dateFilteredJobs.filter((job) => {
-          const user = Array.from(this.users.values()).find((u) => u.id === job.userId);
-          return user?.companyId === companyId;
+          const user = Array.from([job.user]).find((u) => u.id === job.userId);
+          return user?.id === job.userId;
         })
       : dateFilteredJobs;
 
@@ -403,4 +327,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new PostgresStorage();
