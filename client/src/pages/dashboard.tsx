@@ -36,6 +36,21 @@ export default function DashboardPage() {
           color: "text-chart-1",
         },
       ]
+    : user?.role === "admin"
+    ? [
+        {
+          title: "Usuarios Activos",
+          value: stats?.totalUsers || 0,
+          icon: Users,
+          color: "text-chart-2",
+        },
+        {
+          title: "Impresoras Activas",
+          value: stats?.totalPrinters || 0,
+          icon: Printer,
+          color: "text-chart-3",
+        },
+      ]
     : [
         {
           title: "Total Trabajos",
@@ -43,16 +58,6 @@ export default function DashboardPage() {
           icon: FileText,
           color: "text-chart-1",
         },
-        ...(user?.role === "admin"
-          ? [
-              {
-                title: "Usuarios Activos",
-                value: stats?.totalUsers || 0,
-                icon: Users,
-                color: "text-chart-2",
-              },
-            ]
-          : []),
         {
           title: "Impresoras Activas",
           value: stats?.totalPrinters || 0,
@@ -100,7 +105,7 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {user?.role !== "super-admin" && (
+      {(user?.role === "operator" || user?.role === "viewer") && (
       <Card>
         <CardHeader>
           <CardTitle>Trabajos Recientes</CardTitle>
@@ -170,7 +175,7 @@ export default function DashboardPage() {
       </Card>
       )}
 
-      {user?.role !== "super-admin" && stats?.topUsers && stats.topUsers.length > 0 && (
+      {(user?.role === "operator" || user?.role === "viewer") && stats?.topUsers && stats.topUsers.length > 0 && (
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
