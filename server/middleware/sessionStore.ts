@@ -1,4 +1,5 @@
 import { EventEmitter } from "events";
+import { randomBytes } from "crypto";
 import type SessionStore from "express-session";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { eq } from "drizzle-orm";
@@ -124,7 +125,7 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
         return callback?.(err);
       }
 
-      const newSid = require("crypto").randomBytes(16).toString("hex");
+      const newSid = randomBytes(16).toString("hex");
       
       if (session) {
         this.set(newSid, session, (err) => {
