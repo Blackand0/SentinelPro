@@ -8,7 +8,6 @@ import path from "path";
 import fs from "fs";
 import { storage } from "./storage";
 import { requireAuth, requireRole } from "./middleware/auth";
-import { generateCsrfToken, validateCsrfToken } from "./middleware/csrf";
 import {
   insertUserSchema,
   loginSchema,
@@ -90,8 +89,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).send("Failed to view file");
     }
   });
-
-  app.use(validateCsrfToken);
 
   app.post("/api/auth/register", async (req, res) => {
     try {
