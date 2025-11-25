@@ -13,8 +13,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import type { DashboardStats } from "@shared/schema";
 import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "@/lib/auth";
 
 export default function DashboardPage() {
+  const { user } = useAuth();
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ["/api/dashboard"],
   });
@@ -26,12 +28,16 @@ export default function DashboardPage() {
       icon: FileText,
       color: "text-chart-1",
     },
-    {
-      title: "Usuarios Activos",
-      value: stats?.totalUsers || 0,
-      icon: Users,
-      color: "text-chart-2",
-    },
+    ...(user?.role === "super-admin" || user?.role === "admin"
+      ? [
+          {
+            title: "Usuarios Activos",
+            value: stats?.totalUsers || 0,
+            icon: Users,
+            color: "text-chart-2",
+          },
+        ]
+      : []),
     {
       title: "Impresoras Activas",
       value: stats?.totalPrinters || 0,
