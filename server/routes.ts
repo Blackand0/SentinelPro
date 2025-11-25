@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       req.session.userId = user.id;
-      
+
       generateCsrfToken(req, res);
 
       res.json({ ok: true });
@@ -116,7 +116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       req.session.userId = user.id;
-      
+
       generateCsrfToken(req, res);
 
       res.json({ ok: true });
@@ -159,7 +159,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/users", requireAuth, requireRole(["super-admin", "admin"]), async (req, res) => {
     try {
       const data = insertUserSchema.parse(req.body);
-      
+
       // Only super-admin can create other super-admins or admins
       if ((data.role === "super-admin" || data.role === "admin") && req.user.role !== "super-admin") {
         return res.status(403).send("Solo el Super Admin puede crear Admins");

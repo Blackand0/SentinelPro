@@ -55,7 +55,7 @@ export class MemStorage implements IStorage {
     this.printers = new Map();
     this.printJobs = new Map();
     this.companies = new Map();
-    
+
     // Seed super admin
     this.initializeSuperAdmin();
   }
@@ -65,7 +65,7 @@ export class MemStorage implements IStorage {
     const superAdminExists = Array.from(this.users.values()).find(
       (user) => user.username === "sentinelpro"
     );
-    
+
     if (!superAdminExists) {
       const hashedPassword = await bcrypt.default.hash("123456", 10);
       const id = "00000000-0000-0000-0000-000000000001";
@@ -111,7 +111,7 @@ export class MemStorage implements IStorage {
     const users = Array.from(this.users.values())
       .filter((u) => u.role !== "super-admin")
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    
+
     return users.map(({ password, ...userWithoutPassword }) => userWithoutPassword);
   }
 
@@ -119,7 +119,7 @@ export class MemStorage implements IStorage {
     const users = Array.from(this.users.values())
       .filter((u) => u.role !== "super-admin" && (!companyId || u.companyId === companyId))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    
+
     return users.map(({ password, ...userWithoutPassword }) => userWithoutPassword);
   }
 
