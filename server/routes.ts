@@ -149,25 +149,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword,
       });
 
-      // Set session
+      // Set session - express-session will save and send Set-Cookie automatically
       req.session.userId = user.id;
-
-      // Promisify session save
-      await new Promise<void>((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-
-      // Set cookie with the session ID
-      res.cookie("connect.sid", req.sessionID, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        path: "/"
-      });
 
       generateCsrfToken(req, res);
       res.json({ ok: true });
@@ -206,23 +189,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       req.session.userId = user.id;
       console.log(`✅ Login: User ${user.id} → Session ${req.sessionID}`);
 
-      // Promisify save
-      await new Promise<void>((resolve, reject) => {
-        req.session.save((err) => {
-          if (err) reject(err);
-          else resolve();
-        });
-      });
-
-      // Set cookie with the session ID
-      res.cookie("connect.sid", req.sessionID, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-        path: "/"
-      });
-
+      // Express-session will automatically send Set-Cookie after save
+      // Don't call save() - just let express-session handle it when we respond
       generateCsrfToken(req, res);
       res.json({ ok: true });
     } catch (error) {
