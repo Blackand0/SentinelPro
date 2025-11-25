@@ -24,12 +24,12 @@ import { Loader2 } from "lucide-react";
 
 function AuthenticatedLayout() {
   return (
-    <div className="flex h-screen w-full">
+    <div className="flex h-screen w-full justify-center">
       <AppSidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden max-w-6xl w-full">
         <Header />
         <main className="flex-1 overflow-y-auto p-6">
-          <div className="mx-auto max-w-7xl">
+          <div className="mx-auto max-w-4xl">
             <Switch>
               <Route path="/" component={DashboardPage} />
               <Route path="/print-jobs" component={PrintJobsPage} />
