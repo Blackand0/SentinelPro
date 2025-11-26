@@ -209,11 +209,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Super-admin can assign companyId to new admin/operator/viewer users
-      // If super-admin creates a non-super-admin user WITHOUT companyId, reject it
-      if (req.user.role === "super-admin" && data.role !== "super-admin") {
+      // Super-admin can create admins without companyId
+      // But operators/viewers MUST have companyId assigned
+      if (req.user.role === "super-admin" && (data.role === "operator" || data.role === "viewer")) {
         if (!data.companyId) {
-          return res.status(400).send("Debes asignar una empresa al crear un usuario");
+          return res.status(400).send("Debes asignar una empresa para operadores y visualizadores");
         }
       }
 
