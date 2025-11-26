@@ -183,7 +183,7 @@ export default function ConsumptionPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Estimated Ink Usage</CardTitle>
+            <CardTitle>Consumo Estimado de Tinta</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -196,24 +196,24 @@ export default function ConsumptionPage() {
               <div className="space-y-6">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Total Ink (ml)</span>
+                    <span className="text-sm font-medium">Tinta Total (ml)</span>
                     <span className="text-2xl font-bold">
                       {stats?.estimatedInkUsed?.toLocaleString() || 0}
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Estimated based on print jobs
+                    Estimado basado en trabajos de impresión
                   </p>
                 </div>
 
                 <div className="rounded-lg bg-muted p-4">
                   <div className="flex items-center gap-3 mb-3">
                     <Droplet className="h-5 w-5 text-chart-4" />
-                    <span className="font-medium">Consumption Breakdown</span>
+                    <span className="font-medium">Desglose de Consumo</span>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Black Ink</span>
+                      <span className="text-muted-foreground">Tinta Negra</span>
                       <span className="font-medium">
                         {stats?.estimatedInkUsed
                           ? (stats.estimatedInkUsed * 0.6).toFixed(1)
@@ -222,7 +222,7 @@ export default function ConsumptionPage() {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Color Ink</span>
+                      <span className="text-muted-foreground">Tinta Color</span>
                       <span className="font-medium">
                         {stats?.estimatedInkUsed
                           ? (stats.estimatedInkUsed * 0.4).toFixed(1)
@@ -235,9 +235,7 @@ export default function ConsumptionPage() {
 
                 <div className="rounded-lg border border-border bg-card p-4">
                   <p className="text-sm text-muted-foreground">
-                    <strong className="text-foreground">Note:</strong> Ink usage is
-                    estimated based on industry averages. Color printing uses
-                    approximately 3x more ink than black & white.
+                    <strong className="text-foreground">Nota:</strong> El consumo de tinta se estima en función de promedios de la industria. La impresión a color utiliza aproximadamente 3 veces más tinta que blanco y negro.
                   </p>
                 </div>
               </div>
