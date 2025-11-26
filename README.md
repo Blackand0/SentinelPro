@@ -71,16 +71,6 @@ Sentinel Pro/
 
 ## 🛠️ Desarrollo
 
-### Scripts Disponibles
-
-| Comando | Descripción |
-|---------|------------|
-| `npm run dev` | 🔧 Inicia servidor desarrollo (localhost:5000) |
-| `npm run build` | 📦 Compila para producción |
-| `npm run start` | ▶️ Inicia servidor producción |
-| `npm run check` | ✓ Verifica tipos TypeScript |
-| `npm run db:push` | 🗄️ Sincroniza base de datos |
-
 ### Extensiones Recomendadas VS Code
 - ES7+ React/Redux snippets
 - Tailwind CSS IntelliSense
