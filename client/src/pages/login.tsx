@@ -44,10 +44,9 @@ export default function LoginPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: z.infer<typeof loginSchema>) => {
-      return await apiRequest<{ok: boolean; token: string}>("POST", "/api/auth/login", data);
+      return await apiRequest<{ ok: boolean; token: string }>("POST", "/api/auth/login", data);
     },
     onSuccess: async (response) => {
-      // Save JWT token to localStorage
       localStorage.setItem("authToken", response.token);
       await login();
       toast({
@@ -70,7 +69,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex h-screen w-screen items-center justify-center bg-background">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4 text-center">
           <div className="mx-auto">
@@ -145,3 +144,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
