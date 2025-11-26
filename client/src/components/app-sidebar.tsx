@@ -66,13 +66,13 @@ export function AppSidebar() {
       title: "Impresoras",
       url: "/printers",
       icon: Settings,
-      roles: ["admin", "operator"],
+      roles: ["admin"],
     },
     {
       title: "Consumo",
       url: "/consumption",
       icon: BarChart3,
-      roles: ["admin", "operator"],
+      roles: ["admin"],
     },
   ];
 
@@ -80,6 +80,9 @@ export function AppSidebar() {
   const visibleManagementItems = managementItems.filter((item) =>
     hasRole(item.roles)
   );
+
+  // Only show Management section for admin and super-admin
+  const shouldShowManagement = user?.role === "admin" || user?.role === "super-admin";
 
   const getInitials = (name: string) => {
     return name
@@ -138,7 +141,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {visibleManagementItems.length > 0 && (
+        {shouldShowManagement && visibleManagementItems.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel>Administración</SidebarGroupLabel>
             <SidebarGroupContent>
