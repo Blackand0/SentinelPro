@@ -11,12 +11,16 @@ import {
 } from "@/components/ui/select";
 import type { ConsumptionStats } from "@shared/schema";
 import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function ConsumptionPage() {
   const [period, setPeriod] = useState<string>("month");
 
   const { data: stats, isLoading } = useQuery<ConsumptionStats>({
     queryKey: ["/api/consumption", period],
+    queryFn: async () => {
+      return apiRequest<ConsumptionStats>("GET", `/api/consumption?period=${period}`);
+    },
   });
 
   const consumptionCards = [
