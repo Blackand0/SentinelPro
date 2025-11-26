@@ -115,10 +115,11 @@ export default function UsersPage() {
 
   const onSubmit = (data: z.infer<typeof insertUserSchema>) => {
     // Si el usuario actual es admin, asignar su companyId al nuevo usuario
-    const finalData = currentUser?.role === "admin" && currentUser?.companyId 
-      ? { ...data, companyId: currentUser.companyId }
-      : data;
-    createUserMutation.mutate(finalData);
+    if (currentUser?.role === "admin" && currentUser?.companyId) {
+      data.companyId = currentUser.companyId;
+    }
+    // Si es super-admin, companyId debe venir del form (no se asigna automáticamente)
+    createUserMutation.mutate(data);
   };
 
   const getRoleBadgeVariant = (role: string) => {

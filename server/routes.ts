@@ -209,6 +209,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Super-admin can assign companyId to new admin/operator/viewer users
+      // If super-admin creates a non-super-admin user WITHOUT companyId, reject it
+      if (req.user.role === "super-admin" && data.role !== "super-admin") {
+        if (!data.companyId) {
+          return res.status(400).send("Debes asignar una empresa al crear un usuario");
+        }
+      }
+
       const existingUsername = await storage.getUserByUsername(data.username);
       if (existingUsername) {
         return res.status(400).send("El usuario ya existe");
