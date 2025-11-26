@@ -348,6 +348,14 @@ export class PostgresStorage implements IStorage {
   }
 
   async updateCompanyAdmin(id: string, adminId: string | null): Promise<Company | undefined> {
+    // If assigning an admin, also assign the company to that user
+    if (adminId) {
+      await db
+        .update(users)
+        .set({ companyId: id })
+        .where(eq(users.id, adminId));
+    }
+    
     const result = await db
       .update(companies)
       .set({ adminId: adminId || undefined })
