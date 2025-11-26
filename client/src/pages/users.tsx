@@ -58,6 +58,11 @@ export default function UsersPage() {
     queryKey: ["/api/users"],
   });
 
+  const { data: companies } = useQuery<any[]>({
+    queryKey: ["/api/companies"],
+    enabled: currentUser?.role === "super-admin",
+  });
+
   const form = useForm<z.infer<typeof insertUserSchema>>({
     resolver: zodResolver(insertUserSchema),
     defaultValues: {
@@ -272,6 +277,32 @@ export default function UsersPage() {
                     </FormItem>
                   )}
                 />
+                {currentUser?.role === "super-admin" && form.watch("role") !== "super-admin" && (
+                  <FormField
+                    control={form.control}
+                    name="companyId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Empresa</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-company">
+                              <SelectValue placeholder="Selecciona una empresa" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {companies?.map((company: any) => (
+                              <SelectItem key={company.id} value={company.id}>
+                                {company.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <DialogFooter>
                   <Button
                     type="button"
