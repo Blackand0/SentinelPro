@@ -2,20 +2,11 @@
 
 **Plataforma web multi-tenant para pequeñas y medianas empresas, completamente funcional en Windows con VS Code.**
 
-## 🚀 Inicio Rápido (Windows)
-
 ### Requisitos
 - **Node.js 20+** → https://nodejs.org/
 - **VS Code** → https://code.visualstudio.com/
 - **PowerShell o CMD**
 
-### Instalación (1 minuto)
-```powershell
-npm install
-npm run dev
-```
-
-**Accede en:** `http://localhost:5000`
 
 **Credenciales de prueba:**
 - Usuario: `sentinelpro`
@@ -90,13 +81,6 @@ Sentinel Pro/
 | `npm run check` | ✓ Verifica tipos TypeScript |
 | `npm run db:push` | 🗄️ Sincroniza base de datos |
 
-### En VS Code
-
-1. **Abre la carpeta** en VS Code
-2. **Terminal → New Terminal** (PowerShell)
-3. **Ejecuta:** `npm run dev`
-4. **Abre navegador:** http://localhost:5000
-
 ### Extensiones Recomendadas VS Code
 - ES7+ React/Redux snippets
 - Tailwind CSS IntelliSense
@@ -138,21 +122,8 @@ Sentinel Pro/
 
 ---
 
-## 🚀 Despliegue en Replit
-
-1. Descarga el ZIP desde GitHub
-2. Sube a Replit
-3. Ejecuta `npm install && npm run dev`
-4. Publica automáticamente
-
----
 
 ## 📝 Notas de Desarrollo
-
-### Desarrollo Local (Windows)
-- Servidor: `http://localhost:5000`
-- BD: En memoria (MemStorage)
-- Archivos: Carpeta `/uploads`
 
 ### Producción
 - Configure `SESSION_SECRET` env variable
@@ -175,34 +146,8 @@ PORT=5000
 |-----|----------|
 | **Super Admin** | Gestiona todo (empresas, admins) |
 | **Admin** | Empresa: usuarios, impresoras, trabajos |
-| **Operador** | Crea trabajos, gestiona impresoras |
+| **Operador** | Crea trabajos|
 | **Visualizador** | Solo lectura: trabajos y dashboard |
-
----
-
-## 🐛 Solución de Problemas
-
-**Error: "Cannot find module"**
-- Verifica estar en la raíz del proyecto
-- Ejecuta `npm install` nuevamente
-
-**Error: "PORT 5000 en uso"**
-- Cambia en `.env`: `PORT=3000`
-- O cierra la app anterior
-
-**Lentitud en desarrollo**
-- Limpia: `npm cache clean --force`
-- Reinstala: `del node_modules && npm install`
-
----
-
-## 📚 Más Información
-
-Consulta `INSTRUCCIONES-WINDOWS.md` para:
-- Guía detallada de instalación
-- Configuración de VS Code
-- Troubleshooting completo
-- Estructura de carpetas explicada
 
 ---
 
