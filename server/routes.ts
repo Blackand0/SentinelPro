@@ -209,9 +209,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Super-admin can create admins without companyId
-      // But operators/viewers MUST have companyId assigned
-      if (req.user.role === "super-admin" && (data.role === "operator" || data.role === "viewer")) {
+      // Super-admin can create any role without companyId (will assign later)
+      // Only admin users MUST assign company when creating users
+      if (req.user.role === "admin" && (data.role === "operator" || data.role === "viewer")) {
         if (!data.companyId) {
           return res.status(400).send("Debes asignar una empresa para operadores y visualizadores");
         }
