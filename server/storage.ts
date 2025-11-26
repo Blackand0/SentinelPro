@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/postgres-js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import postgres from "postgres";
 import { users, printers, printJobs, companies } from "@shared/schema";
 import type {
@@ -386,13 +386,13 @@ export class PostgresStorage implements IStorage {
       const allAdmins = await db.select().from(users).where(eq(users.role, "admin"));
       userCount = allAdmins.length;
     } else {
-      // Admin/Operator/Viewer: count ONLY their company users (excluding super-admin)
+      // Admin/Operator/Viewer: count ONLY their company users (excluding super-admin and admin)
       const companyUsers = await db
         .select()
         .from(users)
         .where(and(
           eq(users.companyId, companyId),
-          eq(users.role, "operator")
+          inArray(users.role, ["operator", "viewer"])
         ));
       userCount = companyUsers.length;
     }
