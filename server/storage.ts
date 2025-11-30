@@ -3,7 +3,7 @@ import { eq, and, inArray, desc } from "drizzle-orm";
 import postgres from "postgres";
 import { 
   users, printers, printJobs, companies, 
-  departments, paperTypes, tonerInventory, maintenanceLogs, alerts 
+  departments, paperTypes, tonerInventory, maintenanceLogs, alerts, consumptionExpenses
 } from "@shared/schema";
 import type {
   User,
@@ -89,6 +89,7 @@ export interface IStorage {
   getDashboardStats(companyId?: string): Promise<DashboardStats>;
   getConsumptionStats(period: string, companyId?: string): Promise<ConsumptionStats>;
   getAnalyticsData(companyId?: string): Promise<any>;
+  createConsumptionExpense(expense: any): Promise<any>;
 }
 
 export const sql = postgres(process.env.DATABASE_URL!, {
@@ -237,6 +238,18 @@ export class PostgresStorage implements IStorage {
 
       await sql.unsafe(`
         ALTER TABLE print_jobs ADD COLUMN IF NOT EXISTS paper_type_id varchar;
+      `);
+
+      await sql.unsafe(`
+        CREATE TABLE IF NOT EXISTS consumption_expenses (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id varchar NOT NULL,
+          expense_type text NOT NULL,
+          amount decimal(10,2) NOT NULL,
+          description text NOT NULL,
+          date timestamp NOT NULL DEFAULT now(),
+          created_at timestamp NOT NULL DEFAULT now()
+        );
       `);
 
       await sql.unsafe(`
@@ -793,6 +806,22 @@ export class PostgresStorage implements IStorage {
 
     const estimatedInkUsed = totalBWPages * 0.5 + totalColorPages * 1.5;
 
+    // Get consumption expenses
+    let totalExpenses = 0;
+    try {
+      const expenses = await db.select().from(consumptionExpenses).where(
+        and(
+          eq(consumptionExpenses.companyId, companyId || ""),
+          ...(companyId ? [] : [])
+        )
+      );
+      
+      const filteredExpenses = expenses.filter(e => new Date(e.createdAt) >= startDate);
+      totalExpenses = filteredExpenses.reduce((sum, e) => sum + parseFloat(e.amount.toString()), 0);
+    } catch (error) {
+      console.error("Error getting expenses:", error);
+    }
+
     return {
       totalJobs: filteredJobs.length,
       totalPages,
@@ -800,6 +829,7 @@ export class PostgresStorage implements IStorage {
       totalColorPages,
       totalPaperUsed: totalPages,
       estimatedInkUsed: Math.round(estimatedInkUsed * 10) / 10,
+      totalExpenses,
       period,
     };
   }
@@ -824,6 +854,16 @@ export class PostgresStorage implements IStorage {
 
   async deleteAlert(id: string): Promise<void> {
     await db.delete(alerts).where(eq(alerts.id, id));
+  }
+
+  async createConsumptionExpense(expense: any) {
+    try {
+      const result = await db.insert(consumptionExpenses).values(expense).returning();
+      return result[0];
+    } catch (error) {
+      console.error("Error creating consumption expense:", error);
+      throw error;
+    }
   }
 
   async getAnalyticsData(companyId?: string) {

@@ -78,6 +78,17 @@ export const maintenanceLogs = pgTable("maintenance_logs", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Consumption Expenses table - NEW
+export const consumptionExpenses = pgTable("consumption_expenses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull(),
+  expenseType: text("expense_type").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  description: text("description").notNull(),
+  date: timestamp("date").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Alerts table - NEW
 export const alerts = pgTable("alerts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -91,6 +102,21 @@ export const alerts = pgTable("alerts", {
   resourceType: text("resource_type"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+// Insert Schemas for Consumption Expenses
+export const insertConsumptionExpenseSchema = createInsertSchema(consumptionExpenses).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  companyId: z.string(),
+  expenseType: z.enum(["paper_removal", "toner_removal", "peripheral"]),
+  amount: z.string().or(z.number()),
+  description: z.string().min(1),
+  date: z.string().optional(),
+});
+
+export type InsertConsumptionExpense = z.infer<typeof insertConsumptionExpenseSchema>;
+export type ConsumptionExpense = typeof consumptionExpenses.$inferSelect;
 
 // Printers table
 export const printers = pgTable("printers", {
@@ -282,6 +308,7 @@ export type ConsumptionStats = {
   totalColorPages: number;
   totalPaperUsed: number;
   estimatedInkUsed: number;
+  totalExpenses: number;
   period: string;
 };
 

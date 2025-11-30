@@ -175,6 +175,24 @@ export default function PaperTypesPage() {
         }),
       });
       if (!res.ok) throw new Error("Error al ajustar");
+      
+      // Register expense when removing stock
+      if (adjustmentType === "remove" && adjustingStock.pricePerSheet) {
+        const expenseAmount = parseFloat(adjustingStock.pricePerSheet as unknown as string) * adjustmentQuantity;
+        await fetch("/api/consumption-expenses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            expenseType: "paper_removal",
+            amount: expenseAmount.toString(),
+            description: `Consumo de ${adjustingStock.name}: ${adjustmentQuantity} resmas`,
+          }),
+        });
+      }
+      
       return res.json();
     },
     onSuccess: () => {

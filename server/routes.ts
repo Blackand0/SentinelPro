@@ -18,6 +18,7 @@ import {
   insertPaperTypeSchema,
   insertTonerInventorySchema,
   insertMaintenanceLogSchema,
+  insertConsumptionExpenseSchema,
   users,
   printers,
   printJobs,
@@ -25,6 +26,7 @@ import {
   paperTypes,
   tonerInventory,
   maintenanceLogs,
+  consumptionExpenses,
 } from "@shared/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
@@ -803,6 +805,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Get consumption stats error:", error);
       res.status(500).send("Failed to fetch consumption stats");
+    }
+  });
+
+  app.post("/api/consumption-expenses", requireAuth, async (req, res) => {
+    try {
+      if (!req.user.companyId) {
+        return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+      }
+
+      const data = insertConsumptionExpenseSchema.parse({
+        ...req.body,
+        companyId: req.user.companyId,
+        date: req.body.date || new Date(),
+      });
+      
+      const expense = await storage.createConsumptionExpense(data);
+      res.json(expense);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Create expense error:", error);
+      res.status(500).send("Failed to create expense");
     }
   });
 

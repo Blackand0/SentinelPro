@@ -47,7 +47,7 @@ export default function ConsumptionPage() {
     },
     {
       title: "Gastos Mensuales",
-      value: "$" + (Math.random() * 500).toFixed(2),
+      value: "$" + (stats?.totalExpenses || 0).toFixed(2),
       icon: Droplet,
       color: "text-chart-4",
       suffix: "periféricos + insumos",
