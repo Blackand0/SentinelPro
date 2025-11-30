@@ -23,6 +23,7 @@ import DepartmentsPage from "@/pages/departments";
 import PaperTypesPage from "@/pages/paper-types";
 import MaintenancePage from "@/pages/maintenance";
 import AnalyticsPage from "@/pages/analytics";
+import TonerInventoryPage from "@/pages/toner-inventory";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -80,6 +81,11 @@ function AuthenticatedLayout() {
               <Route path="/analytics">
                 <ProtectedRoute allowedRoles={["admin"]}>
                   <AnalyticsPage />
+                </ProtectedRoute>
+              </Route>
+              <Route path="/toner-inventory">
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <TonerInventoryPage />
                 </ProtectedRoute>
               </Route>
               <Route component={NotFound} />

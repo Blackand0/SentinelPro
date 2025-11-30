@@ -9,6 +9,7 @@ import {
   Building,
   Wrench,
   Package,
+  Droplets,
 } from "lucide-react";
 import {
   Sidebar,
@@ -100,6 +101,12 @@ export function AppSidebar() {
       url: "/paper-types",
       icon: Package,
       roles: ["admin", "operator"],
+    },
+    {
+      title: "Inventario de Toner",
+      url: "/toner-inventory",
+      icon: Droplets,
+      roles: ["admin"],
     },
     {
       title: "Mantenimiento",

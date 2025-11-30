@@ -14,16 +14,17 @@ Sentinel Pro is a multi-tenant web platform for small and medium-sized businesse
 
 **Latest Changes (Nov 30, 2025):**
 - ✅ Extended database from 4 to 10 tables (added alerts table)
-- ✅ Added 3 new CRUD forms (Departments, Paper Types, Maintenance)
+- ✅ Added 4 new CRUD forms (Departments, Paper Types, Maintenance, **Toner Inventory**)
 - ✅ Removed all Replit dependencies  
 - ✅ Fixed vite.config.ts for ES modules
 - ✅ Configured deployment for Render.com
 - ✅ Production build tested and working
 - ✅ Fixed database migration: Added ALTER TABLE migration script for missing columns
 - ✅ **INNOVATION FEATURES ADDED:**
-  - ✅ **Analytics Dashboard** with real-time metrics, charts (top printers, top users, trends)
-  - ✅ **Smart Alerts System** (printer_offline, low_stock, quota_exceeded, maintenance_due)
-  - ✅ **Report Export** (CSV format with filtering by date range)
+  - ✅ **Analytics Dashboard** with real-time metrics, charts (top printers, top users, trends) - **ADMIN ONLY**
+  - ✅ **Smart Alerts System** (printer_offline, low_stock, quota_exceeded, maintenance_due) - **ADMIN ONLY**
+  - ✅ **Report Export** (CSV format with filtering by date range) - **ADMIN ONLY**
+  - ✅ **Toner/Ink Inventory Management** - Track toner stock, colors, low-stock alerts - **ADMIN ONLY**
 - ✅ Compiled production build: dist/index.js (64KB) + dist/public (files ~700KB)
 - ✅ Ready for GitHub deployment with auto-migration on Render.com startup
 
