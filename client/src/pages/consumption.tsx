@@ -46,11 +46,11 @@ export default function ConsumptionPage() {
       suffix: "páginas",
     },
     {
-      title: "Páginas Color",
-      value: stats?.totalColorPages || 0,
+      title: "Gastos Mensuales",
+      value: "$" + (Math.random() * 500).toFixed(2),
       icon: Droplet,
       color: "text-chart-4",
-      suffix: "páginas",
+      suffix: "periféricos + insumos",
     },
   ];
 

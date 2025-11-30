@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, Gauge } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,7 +49,6 @@ const paperTypeSchema = z.object({
   size: z.string().min(1, "El tamaño es requerido"),
   weight: z.string().min(1, "El gramaje es requerido"),
   color: z.string().default("white"),
-  pricePerResma: z.string().optional(),
 });
 
 type PaperTypeFormData = z.infer<typeof paperTypeSchema>;
@@ -91,7 +90,6 @@ export default function PaperTypesPage() {
       size: "letter",
       weight: "75",
       color: "white",
-      pricePerResma: "",
     },
   });
 
@@ -115,7 +113,7 @@ export default function PaperTypesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/paper-types"] });
-      toast({ title: "Tipo creado", description: "Se agregó nuevo tipo de papel" });
+      toast({ title: "Insumo creado", description: "Se agregó nuevo tipo de papel" });
       form.reset();
       setIsOpen(false);
     },
@@ -201,7 +199,7 @@ export default function PaperTypesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/paper-types"] });
-      toast({ title: "Eliminado", description: "Se removió el tipo" });
+      toast({ title: "Eliminado", description: "Se removió el insumo" });
       setDeletingType(null);
     },
     onError: () => {
@@ -216,7 +214,6 @@ export default function PaperTypesPage() {
       size: type.size,
       weight: type.weight.toString(),
       color: type.color,
-      pricePerResma: type.pricePerSheet?.toString() || "",
     });
     setIsOpen(true);
   };
@@ -234,7 +231,7 @@ export default function PaperTypesPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">📄 Inventario de Papel</h1>
+        <h1 className="text-3xl font-bold">📦 Insumos</h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button
@@ -245,19 +242,19 @@ export default function PaperTypesPage() {
               className="gap-2"
             >
               <Plus className="w-4 h-4" />
-              Nuevo Tipo
+              Nuevo Insumo
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editingType ? "Editar Tipo" : "Nuevo Tipo de Papel"}
+                {editingType ? "Editar Insumo" : "Nuevo Insumo"}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <Label htmlFor="name">Nombre</Label>
-                <Input id="name" {...form.register("name")} placeholder="Ej: Papel Blanco 75g" />
+                <Label htmlFor="name">Nombre (Resmas, Tintas, etc)</Label>
+                <Input id="name" {...form.register("name")} placeholder="Ej: Resmas Blancas A4" />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -285,30 +282,24 @@ export default function PaperTypesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="color">Color</Label>
-                  <Select
-                    value={form.watch("color")}
-                    onValueChange={(value) => form.setValue("color", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="white">Blanco</SelectItem>
-                      <SelectItem value="cream">Crema</SelectItem>
-                      <SelectItem value="yellow">Amarillo</SelectItem>
-                      <SelectItem value="blue">Azul</SelectItem>
-                      <SelectItem value="green">Verde</SelectItem>
-                      <SelectItem value="pink">Rosa</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="pricePerResma">Precio/Resma</Label>
-                  <Input id="pricePerResma" {...form.register("pricePerResma")} placeholder="$3.50" />
-                </div>
+              <div>
+                <Label htmlFor="color">Color/Tipo</Label>
+                <Select
+                  value={form.watch("color")}
+                  onValueChange={(value) => form.setValue("color", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="white">Blanco</SelectItem>
+                    <SelectItem value="cream">Crema</SelectItem>
+                    <SelectItem value="black">Negro</SelectItem>
+                    <SelectItem value="cyan">Cian</SelectItem>
+                    <SelectItem value="magenta">Magenta</SelectItem>
+                    <SelectItem value="yellow">Amarillo</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex gap-3 justify-end">
@@ -328,7 +319,7 @@ export default function PaperTypesPage() {
         <Card className="border-orange-200 bg-orange-50">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-orange-900 font-semibold">
-              ⚠️ {lowStockItems.length} tipo(s) con stock bajo (≤10 resmas)
+              ⚠️ {lowStockItems.length} insumo(s) con stock bajo (≤10 unidades)
             </div>
           </CardContent>
         </Card>
@@ -336,14 +327,14 @@ export default function PaperTypesPage() {
 
       {isLoading ? (
         <Card>
-          <CardContent className="p-8 text-center">Cargando inventario...</CardContent>
+          <CardContent className="p-8 text-center">Cargando insumos...</CardContent>
         </Card>
       ) : (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Tipos de Papel Disponibles
+              <Gauge className="w-5 h-5" />
+              Inventario de Insumos
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -354,9 +345,8 @@ export default function PaperTypesPage() {
                     <TableHead>Nombre</TableHead>
                     <TableHead>Tamaño</TableHead>
                     <TableHead>Gramaje</TableHead>
-                    <TableHead>Color</TableHead>
-                    <TableHead className="text-right">Stock (Resmas)</TableHead>
-                    <TableHead className="text-right">Precio/Resma</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead className="text-right">Stock (Unidades)</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -386,9 +376,6 @@ export default function PaperTypesPage() {
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        ${parseFloat(type.pricePerSheet?.toString() || "0").toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
                           <Button
                             variant="ghost"
@@ -398,7 +385,7 @@ export default function PaperTypesPage() {
                               setAdjustmentType("add");
                               setAdjustmentQuantity(1);
                             }}
-                            title="Agregar resmas"
+                            title="Agregar unidades"
                           >
                             <ArrowUp className="w-4 h-4 text-green-600" />
                           </Button>
@@ -410,7 +397,7 @@ export default function PaperTypesPage() {
                               setAdjustmentType("remove");
                               setAdjustmentQuantity(1);
                             }}
-                            title="Remover resmas"
+                            title="Remover unidades"
                           >
                             <ArrowDown className="w-4 h-4 text-red-600" />
                           </Button>
@@ -444,18 +431,18 @@ export default function PaperTypesPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {adjustmentType === "add" ? "➕ Agregar Resmas" : "➖ Remover Resmas"}
+              {adjustmentType === "add" ? "➕ Agregar Unidades" : "➖ Remover Unidades"}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label>Tipo: <strong>{adjustingStock?.name}</strong></Label>
+              <Label>Insumo: <strong>{adjustingStock?.name}</strong></Label>
             </div>
             <div>
-              <Label>Stock Actual: <strong>{adjustingStock?.stock} resmas</strong></Label>
+              <Label>Stock Actual: <strong>{adjustingStock?.stock} unidades</strong></Label>
             </div>
             <div>
-              <Label htmlFor="qty">Cantidad (resmas)</Label>
+              <Label htmlFor="qty">Cantidad</Label>
               <Input
                 id="qty"
                 type="number"
@@ -470,7 +457,7 @@ export default function PaperTypesPage() {
                 adjustmentType === "add"
                   ? (adjustingStock?.stock as number) + adjustmentQuantity
                   : (adjustingStock?.stock as number) - adjustmentQuantity
-              } resmas</strong>
+              } unidades</strong>
             </div>
             <div className="flex gap-3 justify-end">
               <Button variant="outline" onClick={() => setAdjustingStock(null)}>
@@ -492,7 +479,7 @@ export default function PaperTypesPage() {
       <AlertDialog open={!!deletingType} onOpenChange={() => setDeletingType(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar Tipo</AlertDialogTitle>
+            <AlertDialogTitle>Eliminar Insumo</AlertDialogTitle>
             <AlertDialogDescription>
               ¿Eliminar "{deletingType?.name}"? No se puede deshacer.
             </AlertDialogDescription>

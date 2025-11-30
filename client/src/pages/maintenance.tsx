@@ -71,7 +71,7 @@ const statusLabels: Record<string, string> = {
   cancelled: "Cancelado",
 };
 
-export default function MaintenancePage() {
+export default function PeripheralsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingLog, setEditingLog] = useState<MaintenanceLogWithDetails | null>(null);
   const [deletingLog, setDeletingLog] = useState<MaintenanceLogWithDetails | null>(null);
@@ -85,7 +85,7 @@ export default function MaintenancePage() {
       const res = await fetch("/api/maintenance-logs", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Error al cargar registros");
+      if (!res.ok) throw new Error("Error al cargar periféricos");
       return res.json();
     },
   });
@@ -133,7 +133,7 @@ export default function MaintenancePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/maintenance-logs"] });
-      toast({ title: "Registro de mantenimiento creado exitosamente" });
+      toast({ title: "Periférico registrado", description: "Gasto incluido en consumo mensual" });
       setIsOpen(false);
       form.reset();
     },
@@ -161,7 +161,7 @@ export default function MaintenancePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/maintenance-logs"] });
-      toast({ title: "Registro actualizado exitosamente" });
+      toast({ title: "Periférico actualizado", description: "Gasto incluido en consumo mensual" });
       setIsOpen(false);
       setEditingLog(null);
       form.reset();
@@ -258,22 +258,22 @@ export default function MaintenancePage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold">Mantenimiento</h1>
+          <h1 className="font-display text-3xl font-bold">⚙️ Periféricos</h1>
           <p className="text-muted-foreground mt-1">
-            Gestiona el mantenimiento de las impresoras
+            Registra compras y mantenimiento de periféricos (gastos reflejados en consumo mensual)
           </p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog}>
               <Plus className="mr-2 h-4 w-4" />
-              Nuevo Registro
+              Nuevo Periférico
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>
-                {editingLog ? "Editar Registro" : "Nuevo Registro de Mantenimiento"}
+                {editingLog ? "Editar Periférico" : "Nuevo Periférico"}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

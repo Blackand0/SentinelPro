@@ -12,21 +12,24 @@
 
 Sentinel Pro is a multi-tenant web platform for small and medium-sized businesses to manage print operations. The system provides role-based access control, printer management, print job tracking, and consumption analytics. It's deployed on Render.com with PostgreSQL for data persistence and includes full authentication, file upload capabilities, and real-time dashboards.
 
-**Latest Changes (Nov 30, 2025):**
-- ✅ Extended database from 4 to 10 tables (added alerts table)
-- ✅ Added 4 new CRUD forms (Departments, Paper Types, Maintenance, **Toner Inventory**)
-- ✅ Removed all Replit dependencies  
-- ✅ Fixed vite.config.ts for ES modules
-- ✅ Configured deployment for Render.com
-- ✅ Production build tested and working
-- ✅ Fixed database migration: Added ALTER TABLE migration script for missing columns
-- ✅ **INNOVATION FEATURES ADDED:**
-  - ✅ **Analytics Dashboard** with real-time metrics, charts (top printers, top users, trends) - **ADMIN ONLY**
-  - ✅ **Smart Alerts System** (printer_offline, low_stock, quota_exceeded, maintenance_due) - **ADMIN ONLY**
-  - ✅ **Report Export** (CSV format with filtering by date range) - **ADMIN ONLY**
-  - ✅ **Toner/Ink Inventory Management** - Track toner stock, colors, low-stock alerts - **ADMIN ONLY**
-- ✅ Compiled production build: dist/index.js (64KB) + dist/public (files ~700KB)
-- ✅ Ready for GitHub deployment with auto-migration on Render.com startup
+**Latest Changes (Nov 30, 2025 - FINAL REFACTOR):**
+- ✅ **UI/UX Restructuring Complete:**
+  - ✅ Renamed "Tipos de Papel" → **"Insumos"** (unified supplies inventory: paper + toner + consumables)
+  - ✅ Renamed "Mantenimiento" → **"Periféricos"** (printers, peripherals purchases + maintenance costs tracked in monthly expense)
+  - ✅ Removed "Precio por Hoja" column (simplified, focus on stock management)
+  - ✅ Added **"Gastos Mensuales"** metric in Consumption page (peripherals + supplies expenses)
+  - ✅ Updated sidebar navigation with new terminology
+  - ✅ Optimized for admin-only access to cost tracking features
+- ✅ Extended database from 4 to 10 tables (with alerts + migration scripts)
+- ✅ Added 4 CRUD forms (Departments, Insumos, Periféricos, Toner/Tinta Inventory)
+- ✅ **INNOVATION FEATURES:**
+  - ✅ **Analytics Dashboard** - real-time metrics, charts, trends (ADMIN ONLY)
+  - ✅ **Smart Alerts System** - automated notifications (ADMIN ONLY)
+  - ✅ **CSV Export** - consumption reports with date filtering (ADMIN ONLY)
+  - ✅ **Cost Tracking** - monthly peripheral + supply expenses in dashboard
+- ✅ Build: dist/index.js (64.1KB) ✅ Production-ready
+- ✅ Database migrations automatic on startup
+- ✅ Ready for production deployment
 
 ## User Preferences
 

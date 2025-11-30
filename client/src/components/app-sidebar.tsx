@@ -97,19 +97,19 @@ export function AppSidebar() {
 
   const inventoryItems = [
     {
-      title: "Tipos de Papel",
+      title: "Insumos",
       url: "/paper-types",
       icon: Package,
       roles: ["admin", "operator"],
     },
     {
-      title: "Inventario de Toner",
+      title: "Toner e Tinta",
       url: "/toner-inventory",
       icon: Droplets,
       roles: ["admin"],
     },
     {
-      title: "Mantenimiento",
+      title: "Periféricos",
       url: "/maintenance",
       icon: Wrench,
       roles: ["admin", "operator"],
