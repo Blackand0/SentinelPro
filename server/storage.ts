@@ -218,6 +218,15 @@ export class PostgresStorage implements IStorage {
         );
       `);
 
+      // Migration: Add missing columns if they don't exist
+      await sql.unsafe(`
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS department_id varchar;
+      `);
+
+      await sql.unsafe(`
+        ALTER TABLE printers ADD COLUMN IF NOT EXISTS department_id varchar;
+      `);
+
       console.log("Database tables initialized successfully");
     } catch (error) {
       console.error("Error initializing database tables:", error);
