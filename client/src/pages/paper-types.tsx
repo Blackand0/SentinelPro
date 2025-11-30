@@ -326,7 +326,7 @@ export default function PaperTypesPage() {
               </div>
 
               <div>
-                <Label htmlFor="price">Precio por Hoja ($)</Label>
+                <Label htmlFor="price">Precio ($)</Label>
                 <Input id="price" type="number" step="0.01" {...form.register("pricePerSheet")} placeholder="0.50" />
               </div>
 
@@ -374,7 +374,7 @@ export default function PaperTypesPage() {
                     <TableHead>Tamaño</TableHead>
                     <TableHead>Gramaje</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Precio/Hoja</TableHead>
+                    <TableHead className="text-right">Precio</TableHead>
                     <TableHead className="text-right">Stock</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
