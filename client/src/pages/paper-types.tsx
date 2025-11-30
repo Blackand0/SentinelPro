@@ -303,13 +303,13 @@ export default function PaperTypesPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pricePerSheet">Precio por Hoja</Label>
+                <Label htmlFor="pricePerSheet">Precio por Resma (500 hojas)</Label>
                 <Input
                   id="pricePerSheet"
                   {...form.register("pricePerSheet")}
-                  placeholder="Ej: 0.01"
+                  placeholder="Ej: 3.50"
                   type="number"
-                  step="0.0001"
+                  step="0.01"
                 />
               </div>
               <div className="flex justify-end gap-3">
