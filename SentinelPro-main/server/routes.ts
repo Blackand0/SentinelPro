@@ -1,0 +1,511 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import express from "express";
+import multer from "multer";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import path from "path";
+import fs from "fs";
+import { storage, db, sql } from "./storage";
+import { requireAuth, requireRole } from "./middleware/auth";
+import {
+  insertUserSchema,
+  loginSchema,
+  insertPrinterSchema,
+  insertPrintJobSchema,
+  insertCompanySchema,
+  users,
+  printers,
+  printJobs,
+} from "@shared/schema";
+import { z } from "zod";
+import { eq } from "drizzle-orm";
+
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: uploadsDir,
+    filename: (req, file, cb) => {
+      const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(7)}${path.extname(file.originalname)}`;
+      cb(null, uniqueName);
+    },
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  if (!process.env.SESSION_SECRET) {
+    console.warn(
+      "WARNING: SESSION_SECRET environment variable not set. Using default (insecure for production)"
+    );
+  }
+
+  // Initialize database and super admin
+  await storage.initializeDatabase();
+  await storage.initializeSuperAdmin();
+
+  app.use("/uploads", express.static(uploadsDir));
+
+  // Download file endpoint
+  app.get("/api/files/download/:filename", requireAuth, (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const filePath = path.join(uploadsDir, filename);
+      
+      // Security: ensure file is within uploads directory
+      if (!filePath.startsWith(uploadsDir)) {
+        return res.status(403).send("Forbidden");
+      }
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).send("File not found");
+      }
+      
+      res.download(filePath);
+    } catch (error) {
+      console.error("Download file error:", error);
+      res.status(500).send("Failed to download file");
+    }
+  });
+
+  // View file endpoint - public access
+  app.get("/api/files/view/:filename", (req, res) => {
+    try {
+      const filename = req.params.filename;
+      const filePath = path.join(uploadsDir, filename);
+      
+      // Security: ensure file is within uploads directory
+      if (!filePath.startsWith(uploadsDir)) {
+        return res.status(403).send("Forbidden");
+      }
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).send("File not found");
+      }
+      
+      res.sendFile(filePath);
+    } catch (error) {
+      console.error("View file error:", error);
+      res.status(500).send("Failed to view file");
+    }
+  });
+
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const data = insertUserSchema.parse(req.body);
+
+      const existingUsername = await storage.getUserByUsername(data.username);
+      if (existingUsername) {
+        return res.status(400).send("Username already exists");
+      }
+
+      const existingEmail = await storage.getUserByEmail(data.email);
+      if (existingEmail) {
+        return res.status(400).send("Email already exists");
+      }
+
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+
+      const user = await storage.createUser({
+        ...data,
+        password: hashedPassword,
+      });
+
+      // Generate JWT token
+      const secret = process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production";
+      const token = jwt.sign({ userId: user.id }, secret, { expiresIn: "7d" });
+
+      res.json({ ok: true, token });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Registration error:", error);
+      res.status(500).send("Registration failed");
+    }
+  });
+
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const data = loginSchema.parse(req.body);
+
+      const user = await storage.getUserByUsername(data.username);
+      if (!user) {
+        return res.status(401).send("Invalid username or password");
+      }
+
+      const validPassword = await bcrypt.compare(data.password, user.password);
+      if (!validPassword) {
+        return res.status(401).send("Invalid username or password");
+      }
+
+      // Generate JWT token
+      const secret = process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production";
+      const token = jwt.sign({ userId: user.id }, secret, { expiresIn: "7d" });
+
+      console.log(`✅ Login: User ${user.id} → JWT Token generated`);
+
+      res.json({ ok: true, token });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Login error:", error);
+      res.status(500).send("Login failed");
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    // JWT doesn't require server-side logout - just clear on client
+    res.json({ ok: true });
+  });
+
+  app.get("/api/auth/me", requireAuth, (req, res) => {
+    res.json(req.user);
+  });
+
+  app.get("/api/users", requireAuth, requireRole(["super-admin", "admin"]), async (req, res) => {
+    try {
+      if (req.user.role === "admin") {
+        // Admins see ONLY their company users - validate company assignment
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+        const companyUsers = await storage.getUsersByCompany(req.user.companyId);
+        res.json(companyUsers);
+      } else {
+        // Super-admin sees ONLY admin users (one per company)
+        const adminUsers = await db
+          .select()
+          .from(users)
+          .where(eq(users.role, "admin"));
+        const result = adminUsers.map(({ password, ...user }) => user);
+        res.json(result);
+      }
+    } catch (error) {
+      console.error("Get users error:", error);
+      res.status(500).send("Failed to fetch users");
+    }
+  });
+
+  app.post("/api/users", requireAuth, requireRole(["super-admin", "admin"]), async (req, res) => {
+    try {
+      const data = insertUserSchema.parse(req.body);
+
+      // Only super-admin can create other super-admins or admins
+      if ((data.role === "super-admin" || data.role === "admin") && req.user.role !== "super-admin") {
+        return res.status(403).send("Solo el Super Admin puede crear Admins");
+      }
+
+      // Admin users must assign the user to their own company - FORCE it
+      if (req.user.role === "admin") {
+        data.companyId = req.user.companyId;
+        if (!data.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+      }
+
+      // Super-admin can create any role without companyId (will assign later)
+      // Only admin users MUST assign company when creating users
+      if (req.user.role === "admin" && (data.role === "operator" || data.role === "viewer")) {
+        if (!data.companyId) {
+          return res.status(400).send("Debes asignar una empresa para operadores y visualizadores");
+        }
+      }
+
+      const existingUsername = await storage.getUserByUsername(data.username);
+      if (existingUsername) {
+        return res.status(400).send("El usuario ya existe");
+      }
+
+      const existingEmail = await storage.getUserByEmail(data.email);
+      if (existingEmail) {
+        return res.status(400).send("El correo ya está registrado");
+      }
+
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+
+      const user = await storage.createUser({
+        ...data,
+        password: hashedPassword,
+      });
+
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Create user error:", error);
+      res.status(500).send("Failed to create user");
+    }
+  });
+
+  app.delete("/api/users/:id", requireAuth, requireRole(["super-admin", "admin"]), async (req, res) => {
+    try {
+      const userToDelete = await storage.getUser(req.params.id);
+      if (!userToDelete) {
+        return res.status(404).send("Usuario no encontrado");
+      }
+
+      // Cannot delete super-admin except by super-admin
+      if (userToDelete.role === "super-admin") {
+        return res.status(403).send("No puedes eliminar el Super Admin");
+      }
+
+      // Admin can only delete users from their own company
+      if (req.user.role === "admin" && userToDelete.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes eliminar usuarios de otra empresa");
+      }
+
+      // Delete associated print jobs first (use sql directly for simplicity)
+      await sql`DELETE FROM print_jobs WHERE user_id = ${req.params.id}`;
+      
+      // Then delete the user
+      await storage.deleteUser(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete user error:", error);
+      res.status(500).send("Failed to delete user");
+    }
+  });
+
+  app.get("/api/printers", requireAuth, async (req, res) => {
+    try {
+      let companyId: string | undefined;
+      
+      if (req.user.role === "super-admin") {
+        companyId = undefined; // Super-admin sees all
+      } else {
+        // Admin/Operator/Viewer MUST have companyId
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+        companyId = req.user.companyId;
+      }
+      
+      const printers = await storage.getAllPrinters(companyId);
+      res.json(printers);
+    } catch (error) {
+      console.error("Get printers error:", error);
+      res.status(500).send("Failed to fetch printers");
+    }
+  });
+
+  app.post("/api/printers", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      // Admin/Operator MUST have companyId
+      if (!req.user.companyId) {
+        return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+      }
+
+      const data = insertPrinterSchema.parse(req.body);
+      
+      // FORCE assign printer to user's company
+      data.companyId = req.user.companyId;
+      
+      const printer = await storage.createPrinter(data);
+      res.json(printer);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Create printer error:", error);
+      res.status(500).send("Failed to create printer");
+    }
+  });
+
+  app.delete("/api/printers/:id", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      const printer = await storage.getPrinter(req.params.id);
+      if (!printer) {
+        return res.status(404).send("Impresora no encontrada");
+      }
+
+      // Can only delete printers from own company
+      if (printer.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes eliminar impresoras de otra empresa");
+      }
+
+      await storage.deletePrinter(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete printer error:", error);
+      res.status(500).send("Failed to delete printer");
+    }
+  });
+
+  app.get("/api/print-jobs", requireAuth, async (req, res) => {
+    try {
+      let companyId: string | undefined;
+      
+      if (req.user.role === "super-admin") {
+        companyId = undefined; // Super-admin sees all
+      } else {
+        // Admin/Operator/Viewer MUST have companyId
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+        companyId = req.user.companyId;
+      }
+      
+      const jobs = await storage.getAllPrintJobs(companyId);
+      res.json(jobs);
+    } catch (error) {
+      console.error("Get print jobs error:", error);
+      res.status(500).send("Failed to fetch print jobs");
+    }
+  });
+
+  app.post("/api/print-jobs", requireAuth, requireRole(["admin", "operator"]), upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).send("No file uploaded");
+      }
+
+      const data = insertPrintJobSchema.parse({
+        ...req.body,
+        pageCount: parseInt(req.body.pageCount),
+        copies: parseInt(req.body.copies),
+        fileSize: parseInt(req.body.fileSize),
+      });
+
+      const job = await storage.createPrintJob({
+        ...data,
+        filePath: `/uploads/${req.file.filename}`,
+      });
+
+      res.json(job);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Create print job error:", error);
+      res.status(500).send("Failed to create print job");
+    }
+  });
+
+  app.get("/api/print-jobs/:id", requireAuth, async (req, res) => {
+    try {
+      const job = await storage.getPrintJob(req.params.id);
+      if (!job) {
+        return res.status(404).send("Print job not found");
+      }
+
+      // Verify user's company access
+      if (req.user.role !== "super-admin" && job.user.companyId !== req.user.companyId) {
+        return res.status(403).send("No tienes acceso a este trabajo de impresión");
+      }
+
+      res.json(job);
+    } catch (error) {
+      console.error("Get print job error:", error);
+      res.status(500).send("Failed to fetch print job");
+    }
+  });
+
+  app.get("/api/dashboard", requireAuth, async (req, res) => {
+    try {
+      let companyId: string | undefined;
+      
+      if (req.user.role === "super-admin") {
+        companyId = undefined; // Super-admin sees everything
+      } else {
+        // Admin/Operator/Viewer MUST have companyId
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+        companyId = req.user.companyId;
+      }
+      
+      const stats = await storage.getDashboardStats(companyId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Get dashboard stats error:", error);
+      res.status(500).send("Failed to fetch dashboard stats");
+    }
+  });
+
+  app.get("/api/consumption", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      // Admin/Operator must have companyId
+      if (!req.user.companyId) {
+        return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+      }
+
+      const period = (req.query.period as string) || "month";
+      const stats = await storage.getConsumptionStats(period, req.user.companyId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Get consumption stats error:", error);
+      res.status(500).send("Failed to fetch consumption stats");
+    }
+  });
+
+  app.get("/api/companies", requireAuth, requireRole(["super-admin"]), async (req, res) => {
+    try {
+      const companies = await storage.getAllCompanies();
+      res.json(companies);
+    } catch (error) {
+      console.error("Get companies error:", error);
+      res.status(500).send("Failed to fetch companies");
+    }
+  });
+
+  app.post("/api/companies", requireAuth, requireRole(["super-admin"]), async (req, res) => {
+    try {
+      const data = insertCompanySchema.parse(req.body);
+      const company = await storage.createCompany(data);
+      res.json(company);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Create company error:", error);
+      res.status(500).send("Failed to create company");
+    }
+  });
+
+  app.delete("/api/companies/:id", requireAuth, requireRole(["super-admin"]), async (req, res) => {
+    try {
+      // Delete in cascade order to avoid FK constraints
+      // 1. Delete all print jobs for users in this company
+      await sql`DELETE FROM print_jobs WHERE user_id IN (SELECT id FROM users WHERE company_id = ${req.params.id})`;
+      
+      // 2. Delete users in this company
+      await db.delete(users).where(eq(users.companyId, req.params.id));
+      
+      // 3. Delete printers in this company
+      await db.delete(printers).where(eq(printers.companyId, req.params.id));
+      
+      // 4. Finally delete the company
+      await storage.deleteCompany(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete company error:", error);
+      res.status(500).send("Failed to delete company");
+    }
+  });
+
+  app.patch("/api/companies/:id/admin", requireAuth, requireRole(["super-admin"]), async (req, res) => {
+    try {
+      const { adminId } = req.body;
+      const company = await storage.updateCompanyAdmin(req.params.id, adminId || null);
+      if (!company) {
+        return res.status(404).send("Company not found");
+      }
+      res.json(company);
+    } catch (error) {
+      console.error("Update company admin error:", error);
+      res.status(500).send("Failed to update company admin");
+    }
+  });
+
+  const httpServer = createServer(app);
+
+  return httpServer;
+}

@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: sentinel-pro
+    runtime: node
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    envVarRefs:
+      - key: SESSION_SECRET
+        fromDatabase:
+          property: connectionString

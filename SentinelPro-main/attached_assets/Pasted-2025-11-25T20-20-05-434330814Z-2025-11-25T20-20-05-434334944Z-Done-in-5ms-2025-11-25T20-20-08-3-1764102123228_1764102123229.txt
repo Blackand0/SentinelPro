@@ -1,0 +1,100 @@
+2025-11-25T20:20:05.434330814Z 
+2025-11-25T20:20:05.434334944Z ⚡ Done in 5ms
+2025-11-25T20:20:08.386810182Z ==> Uploading build...
+2025-11-25T20:20:18.249053124Z ==> Uploaded in 6.7s. Compression took 3.1s
+2025-11-25T20:20:18.289449344Z ==> Build successful 🎉
+2025-11-25T20:20:27.841429263Z ==> Deploying...
+2025-11-25T20:21:04.096631617Z ==> Running 'npm run start'
+2025-11-25T20:21:05.203564811Z 
+2025-11-25T20:21:05.203590132Z > sentinel-pro@1.0.0 start
+2025-11-25T20:21:05.203595652Z > NODE_ENV=production node dist/index.js
+2025-11-25T20:21:05.203598453Z 
+2025-11-25T20:21:11.210361914Z ✅ Using PostgreSQL Session Store
+2025-11-25T20:21:11.907233802Z {
+2025-11-25T20:21:11.907259353Z   severity_local: 'NOTICE',
+2025-11-25T20:21:11.907263583Z   severity: 'NOTICE',
+2025-11-25T20:21:11.907266393Z   code: '42P07',
+2025-11-25T20:21:11.907270154Z   message: 'relation "companies" already exists, skipping',
+2025-11-25T20:21:11.907315806Z   file: 'parse_utilcmd.c',
+2025-11-25T20:21:11.907320897Z   line: '208',
+2025-11-25T20:21:11.907323547Z   routine: 'transformCreateStmt'
+2025-11-25T20:21:11.907326447Z }
+2025-11-25T20:21:11.9090028Z {
+2025-11-25T20:21:11.909018791Z   severity_local: 'NOTICE',
+2025-11-25T20:21:11.909023051Z   severity: 'NOTICE',
+2025-11-25T20:21:11.909026282Z   code: '42P07',
+2025-11-25T20:21:11.909029732Z   message: 'relation "session" already exists, skipping',
+2025-11-25T20:21:11.909032312Z   file: 'parse_utilcmd.c',
+2025-11-25T20:21:11.909035102Z   line: '208',
+2025-11-25T20:21:11.909037682Z   routine: 'transformCreateStmt'
+2025-11-25T20:21:11.909040032Z }
+2025-11-25T20:21:11.938178827Z {
+2025-11-25T20:21:11.938193638Z   severity_local: 'NOTICE',
+2025-11-25T20:21:11.938196818Z   severity: 'NOTICE',
+2025-11-25T20:21:11.938198608Z   code: '42P07',
+2025-11-25T20:21:11.938201149Z   message: 'relation "users" already exists, skipping',
+2025-11-25T20:21:11.938202898Z   file: 'parse_utilcmd.c',
+2025-11-25T20:21:11.938204709Z   line: '208',
+2025-11-25T20:21:11.938206989Z   routine: 'transformCreateStmt'
+2025-11-25T20:21:11.938209799Z }
+2025-11-25T20:21:11.941261359Z {
+2025-11-25T20:21:11.94127768Z   severity_local: 'NOTICE',
+2025-11-25T20:21:11.94128186Z   severity: 'NOTICE',
+2025-11-25T20:21:11.94128483Z   code: '42P07',
+2025-11-25T20:21:11.941290811Z   message: 'relation "session_expire_idx" already exists, skipping',
+2025-11-25T20:21:11.941293721Z   file: 'index.c',
+2025-11-25T20:21:11.941296361Z   line: '891',
+2025-11-25T20:21:11.941298911Z   routine: 'index_create'
+2025-11-25T20:21:11.941301451Z }
+2025-11-25T20:21:11.941609379Z ✅ Session table ensured
+2025-11-25T20:21:12.277420064Z {
+2025-11-25T20:21:12.277439085Z   severity_local: 'NOTICE',
+2025-11-25T20:21:12.277444735Z   severity: 'NOTICE',
+2025-11-25T20:21:12.277446995Z   code: '42P07',
+2025-11-25T20:21:12.277449925Z   message: 'relation "printers" already exists, skipping',
+2025-11-25T20:21:12.277452095Z   file: 'parse_utilcmd.c',
+2025-11-25T20:21:12.277454425Z   line: '208',
+2025-11-25T20:21:12.277456575Z   routine: 'transformCreateStmt'
+2025-11-25T20:21:12.277458716Z }
+2025-11-25T20:21:12.31071849Z {
+2025-11-25T20:21:12.310737041Z   severity_local: 'NOTICE',
+2025-11-25T20:21:12.310742311Z   severity: 'NOTICE',
+2025-11-25T20:21:12.310745752Z   code: '42P07',
+2025-11-25T20:21:12.310750002Z   message: 'relation "print_jobs" already exists, skipping',
+2025-11-25T20:21:12.310753232Z   file: 'parse_utilcmd.c',
+2025-11-25T20:21:12.310756312Z   line: '208',
+2025-11-25T20:21:12.310759592Z   routine: 'transformCreateStmt'
+2025-11-25T20:21:12.310763003Z }
+2025-11-25T20:21:12.336843487Z {
+2025-11-25T20:21:12.336863508Z   severity_local: 'NOTICE',
+2025-11-25T20:21:12.336867608Z   severity: 'NOTICE',
+2025-11-25T20:21:12.336870398Z   code: '42P07',
+2025-11-25T20:21:12.336873968Z   message: 'relation "session" already exists, skipping',
+2025-11-25T20:21:12.33689024Z   file: 'parse_utilcmd.c',
+2025-11-25T20:21:12.33689315Z   line: '208',
+2025-11-25T20:21:12.33689587Z   routine: 'transformCreateStmt'
+2025-11-25T20:21:12.33689901Z }
+2025-11-25T20:21:12.337224958Z ✅ Database tables initialized
+2025-11-25T20:21:12.496910702Z 8:21:12 PM [express] serving on port 10000
+2025-11-25T20:21:13.161654269Z ✅ Session saved: JrwZkGBA7hsBcWDk5EoFOAQxt9E_QVfy
+2025-11-25T20:21:13.413574905Z ==> Your service is live 🎉
+2025-11-25T20:21:13.446927193Z ==> 
+2025-11-25T20:21:13.477934451Z ==> ///////////////////////////////////////////////////////////
+2025-11-25T20:21:13.508270938Z ==> 
+2025-11-25T20:21:13.540263466Z ==> Available at your primary URL https://sentinelpro.onrender.com
+2025-11-25T20:21:13.572410523Z ==> 
+2025-11-25T20:21:13.605050961Z ==> ///////////////////////////////////////////////////////////
+2025-11-25T20:21:15.255596097Z ✅ Session saved: bTA1511qm0Vjtp9BxDTbuEzaFYndJDkR
+2025-11-25T20:21:47.575428213Z ✅ Session saved: QJTCjybV8XJjotkeueKYvHUwqwMljq0c
+2025-11-25T20:21:47.821501783Z ✅ Session saved: 20P2sUQh8EF-pk-TOdGk4TDlbloUhhuH
+2025-11-25T20:21:48.168376384Z ✅ Session saved: ktamqjiK3SgXoFL0v_GDS_TceJomFwbS
+2025-11-25T20:21:48.638954992Z ✅ Session saved: cb6S2FXhCejkCNUxdEJreM5sJ-A1Rmow
+2025-11-25T20:21:48.639649371Z 8:21:48 PM [express] GET /api/auth/me 401 in 45ms
+2025-11-25T20:21:48.908694342Z ✅ Session saved: _IpxRVsXliyPc8yBk4dToVHvDV5au7Bu
+2025-11-25T20:21:54.3704366Z ✅ Session regenerated (new): p1jxydmIPsoQFuoV7Lei5Q541nQixX9w
+2025-11-25T20:21:54.370459551Z ✅ Login: User 00000000-0000-0000-0000-000000000001 → Session p1jxydmIPsoQFuoV7Lei5Q541nQixX9w
+2025-11-25T20:21:54.408551986Z ✅ Session saved: p1jxydmIPsoQFuoV7Lei5Q541nQixX9w
+2025-11-25T20:21:54.442614005Z ✅ Session saved: p1jxydmIPsoQFuoV7Lei5Q541nQixX9w
+2025-11-25T20:21:54.443112942Z 8:21:54 PM [express] POST /api/auth/login 200 in 549ms :: {"ok":true}
+2025-11-25T20:21:54.714357006Z ✅ Session saved: c8f0PxfGRUdXnZ_o8YJO0p0H1Ugwww0h
+2025-11-25T20:21:54.714458962Z 8:21:54 PM [express] GET /api/auth/me 401 in 36ms
