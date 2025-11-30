@@ -236,6 +236,10 @@ export class PostgresStorage implements IStorage {
       `);
 
       await sql.unsafe(`
+        ALTER TABLE print_jobs ADD COLUMN IF NOT EXISTS paper_type_id varchar;
+      `);
+
+      await sql.unsafe(`
         CREATE TABLE IF NOT EXISTS alerts (
           id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
           company_id varchar NOT NULL,

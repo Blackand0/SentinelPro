@@ -1,0 +1,40 @@
+11:11:52 PM [express] GET /api/auth/me 304 in 70ms :: {"id":"5b7d1cbc-a0f5-4110-b784-5e1ce960c85e","u…
+Get dashboard stats error: PostgresError: column "paper_type_id" does not exist
+    at ErrorResponse (file:///opt/render/project/src/node_modules/postgres/src/connection.js:794:26)
+    at handle (file:///opt/render/project/src/node_modules/postgres/src/connection.js:480:6)
+    at TLSSocket.data (file:///opt/render/project/src/node_modules/postgres/src/connection.js:315:9)
+    at TLSSocket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:189:23) {
+  severity_local: 'ERROR',
+  severity: 'ERROR',
+  code: '42703',
+  position: '147',
+  file: 'parse_relation.c',
+  line: '3822',
+  routine: 'errorMissingColumn'
+}
+11:11:52 PM [express] GET /api/dashboard 500 in 97ms
+11:11:56 PM [express] GET /api/auth/me 304 in 69ms :: {"id":"5b7d1cbc-a0f5-4110-b784-5e1ce960c85e","u…
+Get print jobs error: PostgresError: column "paper_type_id" does not exist
+    at ErrorResponse (file:///opt/render/project/src/node_modules/postgres/src/connection.js:794:26)
+    at handle (file:///opt/render/project/src/node_modules/postgres/src/connection.js:480:6)
+    at TLSSocket.data (file:///opt/render/project/src/node_modules/postgres/src/connection.js:315:9)
+    at TLSSocket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:189:23) {
+  severity_local: 'ERROR',
+  severity: 'ERROR',
+  code: '42703',
+  position: '147',
+  file: 'parse_relation.c',
+  line: '3822',
+  routine: 'errorMissingColumn'
+}
+11:11:56 PM [express] GET /api/print-jobs 500 in 95ms
+11:11:58 PM [express] GET /api/auth/me 304 in 68ms :: {"id":"5b7d1cbc-a0f5-4110-b784-5e1ce960c85e","u…
+11:11:58 PM [express] GET /api/printers 304 in 127ms :: []
