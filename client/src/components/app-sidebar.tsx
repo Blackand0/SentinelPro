@@ -52,6 +52,21 @@ export function AppSidebar() {
     },
   ];
 
+  const analyticsItems = [
+    {
+      title: "Analytics",
+      url: "/analytics",
+      icon: BarChart3,
+      roles: ["admin", "operator"],
+    },
+    {
+      title: "Consumo",
+      url: "/consumption",
+      icon: FileText,
+      roles: ["admin", "operator"],
+    },
+  ];
+
   const managementItems = [
     {
       title: "Empresas",
@@ -107,9 +122,13 @@ export function AppSidebar() {
   const visibleInventoryItems = inventoryItems.filter((item) =>
     hasRole(item.roles)
   );
+  const visibleAnalyticsItems = analyticsItems.filter((item) =>
+    hasRole(item.roles)
+  );
 
   const shouldShowManagement = user?.role === "admin" || user?.role === "super-admin";
   const shouldShowInventory = user?.role === "admin" || user?.role === "operator";
+  const shouldShowAnalytics = user?.role === "admin" || user?.role === "operator";
 
   const getInitials = (name: string) => {
     return name
@@ -190,6 +209,29 @@ export function AppSidebar() {
             <SidebarGroupContent>
               <SidebarMenu>
                 {visibleManagementItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location === item.url}
+                    >
+                      <a href={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {shouldShowAnalytics && visibleAnalyticsItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Analytics</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {visibleAnalyticsItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild

@@ -862,6 +862,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics API
+  app.get("/api/analytics", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const analytics = await storage.getAnalyticsData(user.companyId);
+      res.json(analytics);
+    } catch (error) {
+      console.error("Analytics error:", error);
+      res.status(500).send("Failed to get analytics");
+    }
+  });
+
+  // Alerts API
+  app.get("/api/alerts", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const alerts = await storage.getAllAlerts(user.companyId);
+      res.json(alerts);
+    } catch (error) {
+      console.error("Alerts error:", error);
+      res.status(500).send("Failed to get alerts");
+    }
+  });
+
+  app.post("/api/alerts", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { type, title, message, severity, resourceId, resourceType } = req.body;
+      const alert = await storage.createAlert({
+        companyId: user.companyId,
+        type,
+        title,
+        message,
+        severity: severity || "info",
+        resourceId,
+        resourceType,
+      });
+      res.json(alert);
+    } catch (error) {
+      console.error("Create alert error:", error);
+      res.status(500).send("Failed to create alert");
+    }
+  });
+
+  app.patch("/api/alerts/:id/read", requireAuth, async (req, res) => {
+    try {
+      await storage.markAlertRead(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Mark alert read error:", error);
+      res.status(500).send("Failed to mark alert as read");
+    }
+  });
+
+  app.delete("/api/alerts/:id", requireAuth, async (req, res) => {
+    try {
+      await storage.deleteAlert(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete alert error:", error);
+      res.status(500).send("Failed to delete alert");
+    }
+  });
+
+  // Export Report API
+  app.post("/api/export/report", requireAuth, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { startDate, endDate } = req.body;
+      const jobs = await storage.getAllPrintJobs(user.companyId);
+      
+      const filtered = jobs.filter(j => {
+        const d = new Date(j.printedAt);
+        return d >= new Date(startDate) && d <= new Date(endDate);
+      });
+
+      const csv = "Date,User,Printer,Pages,Color Mode,Document\n" +
+        filtered.map(j => `${j.printedAt},${j.user.username},${j.printer.name},${j.pageCount},${j.colorMode},${j.documentName}`).join("\n");
+
+      res.setHeader("Content-Type", "text/csv");
+      res.setHeader("Content-Disposition", "attachment; filename=report.csv");
+      res.send(csv);
+    } catch (error) {
+      console.error("Export error:", error);
+      res.status(500).send("Failed to export report");
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

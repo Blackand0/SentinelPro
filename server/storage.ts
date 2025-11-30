@@ -3,7 +3,7 @@ import { eq, and, inArray, desc } from "drizzle-orm";
 import postgres from "postgres";
 import { 
   users, printers, printJobs, companies, 
-  departments, paperTypes, tonerInventory, maintenanceLogs 
+  departments, paperTypes, tonerInventory, maintenanceLogs, alerts 
 } from "@shared/schema";
 import type {
   User,
@@ -26,6 +26,8 @@ import type {
   MaintenanceLog,
   InsertMaintenanceLog,
   MaintenanceLogWithDetails,
+  Alert,
+  InsertAlert,
 } from "@shared/schema";
 
 type UserWithoutPassword = Omit<User, "password">;
@@ -79,8 +81,14 @@ export interface IStorage {
   updateMaintenanceLog(id: string, log: Partial<InsertMaintenanceLog>): Promise<MaintenanceLog | undefined>;
   deleteMaintenanceLog(id: string): Promise<void>;
 
+  getAllAlerts(companyId: string): Promise<Alert[]>;
+  createAlert(alert: InsertAlert): Promise<Alert>;
+  markAlertRead(id: string): Promise<void>;
+  deleteAlert(id: string): Promise<void>;
+
   getDashboardStats(companyId?: string): Promise<DashboardStats>;
   getConsumptionStats(period: string, companyId?: string): Promise<ConsumptionStats>;
+  getAnalyticsData(companyId?: string): Promise<any>;
 }
 
 export const sql = postgres(process.env.DATABASE_URL!, {
@@ -225,6 +233,21 @@ export class PostgresStorage implements IStorage {
 
       await sql.unsafe(`
         ALTER TABLE printers ADD COLUMN IF NOT EXISTS department_id varchar;
+      `);
+
+      await sql.unsafe(`
+        CREATE TABLE IF NOT EXISTS alerts (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id varchar NOT NULL,
+          type text NOT NULL,
+          title text NOT NULL,
+          message text NOT NULL,
+          severity text NOT NULL DEFAULT 'info',
+          read boolean NOT NULL DEFAULT false,
+          resource_id varchar,
+          resource_type text,
+          created_at timestamp NOT NULL DEFAULT now()
+        );
       `);
 
       console.log("Database tables initialized successfully");
@@ -775,6 +798,72 @@ export class PostgresStorage implements IStorage {
       estimatedInkUsed: Math.round(estimatedInkUsed * 10) / 10,
       period,
     };
+  }
+
+  async getAllAlerts(companyId: string): Promise<Alert[]> {
+    try {
+      return await db.select().from(alerts).where(eq(alerts.companyId, companyId));
+    } catch (error) {
+      console.error("Error getting alerts:", error);
+      return [];
+    }
+  }
+
+  async createAlert(alert: InsertAlert): Promise<Alert> {
+    const result = await db.insert(alerts).values(alert).returning();
+    return result[0];
+  }
+
+  async markAlertRead(id: string): Promise<void> {
+    await db.update(alerts).set({ read: true }).where(eq(alerts.id, id));
+  }
+
+  async deleteAlert(id: string): Promise<void> {
+    await db.delete(alerts).where(eq(alerts.id, id));
+  }
+
+  async getAnalyticsData(companyId?: string) {
+    try {
+      const allJobs = await this.getAllPrintJobs(companyId);
+      
+      const jobsByDate: { [key: string]: number } = {};
+      const jobsByPrinter: { [key: string]: number } = {};
+      const jobsByUser: { [key: string]: number } = {};
+
+      allJobs.forEach((job) => {
+        const date = new Date(job.printedAt).toISOString().split("T")[0];
+        jobsByDate[date] = (jobsByDate[date] || 0) + job.pageCount;
+        
+        jobsByPrinter[job.printer.name] = (jobsByPrinter[job.printer.name] || 0) + job.pageCount;
+        jobsByUser[job.user.username] = (jobsByUser[job.user.username] || 0) + job.pageCount;
+      });
+
+      const topPrinters = Object.entries(jobsByPrinter)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([name, pages]) => ({ name, pages }));
+
+      const topUsers = Object.entries(jobsByUser)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([username, pages]) => ({ username, pages }));
+
+      const totalPages = allJobs.reduce((sum, j) => sum + j.pageCount, 0);
+      const totalColorPages = allJobs.filter(j => j.colorMode === "color").reduce((sum, j) => sum + j.pageCount, 0);
+
+      return {
+        jobsByDate,
+        topPrinters,
+        topUsers,
+        totalJobs: allJobs.length,
+        totalPages,
+        totalColorPages,
+        costEstimate: (totalPages * 0.05) + (totalColorPages * 0.2),
+      };
+    } catch (error) {
+      console.error("Error getting analytics:", error);
+      return { jobsByDate: {}, topPrinters: [], topUsers: [], totalJobs: 0, totalPages: 0, totalColorPages: 0, costEstimate: 0 };
+    }
   }
 }
 

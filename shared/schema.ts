@@ -78,6 +78,20 @@ export const maintenanceLogs = pgTable("maintenance_logs", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Alerts table - NEW
+export const alerts = pgTable("alerts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id").notNull(),
+  type: text("type").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  severity: text("severity").notNull().default("info"),
+  read: boolean("read").notNull().default(false),
+  resourceId: varchar("resource_id"),
+  resourceType: text("resource_type"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Printers table
 export const printers = pgTable("printers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -180,6 +194,19 @@ export const insertMaintenanceLogSchema = createInsertSchema(maintenanceLogs).om
   completedDate: z.string().optional(),
 });
 
+export const insertAlertSchema = createInsertSchema(alerts).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  type: z.enum(["printer_offline", "low_stock", "quota_exceeded", "maintenance_due", "system"]),
+  title: z.string().min(1),
+  message: z.string().min(1),
+  severity: z.enum(["info", "warning", "error"]).default("info"),
+  read: z.boolean().default(false),
+  resourceId: z.string().optional(),
+  resourceType: z.string().optional(),
+});
+
 export const insertPrinterSchema = createInsertSchema(printers).omit({
   id: true,
   createdAt: true,
@@ -225,6 +252,9 @@ export type TonerInventory = typeof tonerInventory.$inferSelect;
 
 export type InsertMaintenanceLog = z.infer<typeof insertMaintenanceLogSchema>;
 export type MaintenanceLog = typeof maintenanceLogs.$inferSelect;
+
+export type InsertAlert = z.infer<typeof insertAlertSchema>;
+export type Alert = typeof alerts.$inferSelect;
 
 export type InsertPrinter = z.infer<typeof insertPrinterSchema>;
 export type Printer = typeof printers.$inferSelect;
