@@ -181,7 +181,7 @@ export default function PaperTypesPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/paper-types"] });
       toast({ 
         title: "Stock actualizado", 
-        description: `${adjustmentType === "add" ? "✅ Agregadas" : "✅ Removidas"} ${adjustmentQuantity} resmas` 
+        description: `${adjustmentType === "add" ? "Agregadas" : "Removidas"} ${adjustmentQuantity} resmas` 
       });
       setAdjustingStock(null);
       setAdjustmentQuantity(0);
@@ -236,7 +236,7 @@ export default function PaperTypesPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">📦 Insumos</h1>
+        <h1 className="text-3xl font-bold">Insumos</h1>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button
@@ -329,7 +329,7 @@ export default function PaperTypesPage() {
         <Card className="border-orange-200 bg-orange-50">
           <CardContent className="pt-6">
             <div className="flex items-center gap-2 text-orange-900 font-semibold">
-              ⚠️ {lowStockItems.length} insumo(s) con stock bajo (≤10 unidades)
+              Advertencia: {lowStockItems.length} insumo(s) con stock bajo (≤10 unidades)
             </div>
           </CardContent>
         </Card>
@@ -482,7 +482,7 @@ export default function PaperTypesPage() {
                 disabled={adjustStockMutation.isPending || adjustmentQuantity <= 0}
                 className={adjustmentType === "add" ? "bg-green-600" : "bg-red-600"}
               >
-                {adjustmentType === "add" ? "✅ Agregar" : "❌ Remover"}
+                {adjustmentType === "add" ? "Agregar" : "Remover"}
               </Button>
             </div>
           </div>

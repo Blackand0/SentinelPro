@@ -220,7 +220,7 @@ export default function PeripheralsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl font-bold">⚙️ Periféricos</h1>
+          <h1 className="font-display text-3xl font-bold">Periféricos</h1>
           <p className="text-muted-foreground mt-1">
             Registra compras y mantenimiento de periféricos (gastos reflejados en consumo mensual)
           </p>
@@ -274,8 +274,8 @@ export default function PeripheralsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="purchase">🛒 Compra de Periférico</SelectItem>
-                    <SelectItem value="maintenance">🔧 Mantenimiento</SelectItem>
+                    <SelectItem value="purchase">Compra de Periférico</SelectItem>
+                    <SelectItem value="maintenance">Mantenimiento</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -396,7 +396,7 @@ export default function PeripheralsPage() {
                       <TableCell>{desc || item.description}</TableCell>
                       <TableCell>
                         <Badge variant={item.maintenanceType === "purchase" ? "default" : "secondary"}>
-                          {item.maintenanceType === "purchase" ? "🛒 Compra" : "🔧 Mantenimiento"}
+                          {item.maintenanceType === "purchase" ? "Compra" : "Mantenimiento"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-bold">

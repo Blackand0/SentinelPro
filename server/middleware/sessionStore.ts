@@ -27,7 +27,7 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
       await this.sql.unsafe(`
         CREATE INDEX IF NOT EXISTS session_expire_idx ON session(expire);
       `);
-      console.log("✅ Session table ensured");
+      console.log("Session table ensured");
     } catch (error: any) {
       if (!error.message?.includes("already exists")) {
         console.error("Error ensuring session table:", error);
@@ -102,7 +102,7 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
         SET sess = EXCLUDED.sess, expire = EXCLUDED.expire
       `
         .then(() => {
-          console.log(`✅ Session saved: ${sid}`);
+          console.log(`Session saved: ${sid}`);
           callback?.(null);
         })
         .catch((err) => {
@@ -169,11 +169,11 @@ export class PostgresSessionStore extends EventEmitter implements SessionStore {
           if (err) {
             return callback?.(err);
           }
-          console.log(`✅ Session regenerated: ${oldSid}`);
+          console.log(`Session regenerated: ${oldSid}`);
           callback?.(null);
         });
       } else {
-        console.log(`✅ Session regenerated (new): ${oldSid}`);
+        console.log(`Session regenerated (new): ${oldSid}`);
         callback?.(null);
       }
     });
