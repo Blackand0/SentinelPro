@@ -49,6 +49,7 @@ const paperTypeSchema = z.object({
   size: z.string().min(1, "El tamaño es requerido"),
   weight: z.string().min(1, "El gramaje es requerido"),
   color: z.string().default("white"),
+  pricePerSheet: z.string().optional(),
 });
 
 type PaperTypeFormData = z.infer<typeof paperTypeSchema>;
@@ -90,6 +91,7 @@ export default function PaperTypesPage() {
       size: "letter",
       weight: "75",
       color: "white",
+      pricePerSheet: "",
     },
   });
 
@@ -106,6 +108,7 @@ export default function PaperTypesPage() {
           ...data,
           weight: parseInt(data.weight),
           stock: 0,
+          pricePerSheet: data.pricePerSheet ? parseFloat(data.pricePerSheet) : null,
         }),
       });
       if (!res.ok) throw new Error("Error al crear tipo");
@@ -134,6 +137,7 @@ export default function PaperTypesPage() {
         body: JSON.stringify({
           ...data,
           weight: parseInt(data.weight),
+          pricePerSheet: data.pricePerSheet ? parseFloat(data.pricePerSheet) : null,
         }),
       });
       if (!res.ok) throw new Error("Error al actualizar");
@@ -214,6 +218,7 @@ export default function PaperTypesPage() {
       size: type.size,
       weight: type.weight.toString(),
       color: type.color,
+      pricePerSheet: type.pricePerSheet ? type.pricePerSheet.toString() : "",
     });
     setIsOpen(true);
   };
@@ -302,6 +307,11 @@ export default function PaperTypesPage() {
                 </Select>
               </div>
 
+              <div>
+                <Label htmlFor="price">Precio por Hoja ($)</Label>
+                <Input id="price" type="number" step="0.01" {...form.register("pricePerSheet")} placeholder="0.50" />
+              </div>
+
               <div className="flex gap-3 justify-end">
                 <Button variant="outline" onClick={() => setIsOpen(false)}>
                   Cancelar
@@ -346,7 +356,8 @@ export default function PaperTypesPage() {
                     <TableHead>Tamaño</TableHead>
                     <TableHead>Gramaje</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead className="text-right">Stock (Unidades)</TableHead>
+                    <TableHead className="text-right">Precio/Hoja</TableHead>
+                    <TableHead className="text-right">Stock</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -367,6 +378,9 @@ export default function PaperTypesPage() {
                         <Badge variant="secondary" className="capitalize">
                           {type.color}
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ${type.pricePerSheet ? parseFloat(type.pricePerSheet as unknown as string).toFixed(2) : "—"}
                       </TableCell>
                       <TableCell className="text-right font-bold">
                         <span className={
