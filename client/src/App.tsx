@@ -19,6 +19,9 @@ import UsersPage from "@/pages/users";
 import PrintersPage from "@/pages/printers";
 import ConsumptionPage from "@/pages/consumption";
 import CompaniesPage from "@/pages/companies";
+import DepartmentsPage from "@/pages/departments";
+import PaperTypesPage from "@/pages/paper-types";
+import MaintenancePage from "@/pages/maintenance";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -56,6 +59,21 @@ function AuthenticatedLayout() {
               <Route path="/consumption">
                 <ProtectedRoute allowedRoles={["admin", "operator"]}>
                   <ConsumptionPage />
+                </ProtectedRoute>
+              </Route>
+              <Route path="/departments">
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <DepartmentsPage />
+                </ProtectedRoute>
+              </Route>
+              <Route path="/paper-types">
+                <ProtectedRoute allowedRoles={["admin", "operator"]}>
+                  <PaperTypesPage />
+                </ProtectedRoute>
+              </Route>
+              <Route path="/maintenance">
+                <ProtectedRoute allowedRoles={["admin", "operator"]}>
+                  <MaintenancePage />
                 </ProtectedRoute>
               </Route>
               <Route component={NotFound} />

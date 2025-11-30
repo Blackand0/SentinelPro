@@ -6,6 +6,9 @@ import {
   BarChart3,
   Settings,
   Building2,
+  Building,
+  Wrench,
+  Package,
 } from "lucide-react";
 import {
   Sidebar,
@@ -36,7 +39,7 @@ export function AppSidebar() {
       roles: ["admin", "operator", "viewer", "super-admin"],
     },
     {
-      title: "Trabajos de Impresión",
+      title: "Trabajos de Impresion",
       url: "/print-jobs",
       icon: FileText,
       roles: ["admin", "operator", "viewer"],
@@ -63,10 +66,31 @@ export function AppSidebar() {
       roles: ["admin", "super-admin"],
     },
     {
+      title: "Departamentos",
+      url: "/departments",
+      icon: Building,
+      roles: ["admin"],
+    },
+    {
       title: "Impresoras",
       url: "/printers",
       icon: Settings,
       roles: ["admin"],
+    },
+  ];
+
+  const inventoryItems = [
+    {
+      title: "Tipos de Papel",
+      url: "/paper-types",
+      icon: Package,
+      roles: ["admin", "operator"],
+    },
+    {
+      title: "Mantenimiento",
+      url: "/maintenance",
+      icon: Wrench,
+      roles: ["admin", "operator"],
     },
     {
       title: "Consumo",
@@ -80,9 +104,12 @@ export function AppSidebar() {
   const visibleManagementItems = managementItems.filter((item) =>
     hasRole(item.roles)
   );
+  const visibleInventoryItems = inventoryItems.filter((item) =>
+    hasRole(item.roles)
+  );
 
-  // Only show Management section for admin and super-admin
   const shouldShowManagement = user?.role === "admin" || user?.role === "super-admin";
+  const shouldShowInventory = user?.role === "admin" || user?.role === "operator";
 
   const getInitials = (name: string) => {
     return name
@@ -95,12 +122,29 @@ export function AppSidebar() {
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
+      case "super-admin":
+        return "default";
       case "admin":
         return "default";
       case "operator":
         return "secondary";
       default:
         return "outline";
+    }
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case "super-admin":
+        return "Super Admin";
+      case "admin":
+        return "Administrador";
+      case "operator":
+        return "Operador";
+      case "viewer":
+        return "Visualizador";
+      default:
+        return role;
     }
   };
 
@@ -113,14 +157,14 @@ export function AppSidebar() {
           </div>
           <div>
             <h2 className="font-display text-lg font-bold">Sentinel Pro</h2>
-            <p className="text-xs text-muted-foreground">Gestión de Impresión</p>
+            <p className="text-xs text-muted-foreground">Gestion de Impresion</p>
           </div>
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menú Principal</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {visibleMainItems.map((item) => (
@@ -128,7 +172,6 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={location === item.url}
-                    data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
                   >
                     <a href={item.url}>
                       <item.icon className="h-4 w-4" />
@@ -143,7 +186,7 @@ export function AppSidebar() {
 
         {shouldShowManagement && visibleManagementItems.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel>Administración</SidebarGroupLabel>
+            <SidebarGroupLabel>Administracion</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {visibleManagementItems.map((item) => (
@@ -151,7 +194,29 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={location === item.url}
-                      data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, "-")}`}
+                    >
+                      <a href={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </a>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+
+        {shouldShowInventory && visibleInventoryItems.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Inventario y Reportes</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {visibleInventoryItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location === item.url}
                     >
                       <a href={item.url}>
                         <item.icon className="h-4 w-4" />
@@ -175,16 +240,15 @@ export function AppSidebar() {
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate" data-testid="text-user-name">
+              <p className="text-sm font-medium truncate">
                 {user.fullName}
               </p>
               <div className="flex items-center gap-2">
                 <Badge
                   variant={getRoleBadgeVariant(user.role)}
                   className="text-xs"
-                  data-testid="badge-user-role"
                 >
-                  {user.role}
+                  {getRoleLabel(user.role)}
                 </Badge>
               </div>
             </div>

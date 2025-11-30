@@ -14,9 +14,17 @@ import {
   insertPrinterSchema,
   insertPrintJobSchema,
   insertCompanySchema,
+  insertDepartmentSchema,
+  insertPaperTypeSchema,
+  insertTonerInventorySchema,
+  insertMaintenanceLogSchema,
   users,
   printers,
   printJobs,
+  departments,
+  paperTypes,
+  tonerInventory,
+  maintenanceLogs,
 } from "@shared/schema";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
@@ -44,19 +52,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     );
   }
 
-  // Initialize database and super admin
   await storage.initializeDatabase();
   await storage.initializeSuperAdmin();
 
   app.use("/uploads", express.static(uploadsDir));
 
-  // Download file endpoint
   app.get("/api/files/download/:filename", requireAuth, (req, res) => {
     try {
       const filename = req.params.filename;
       const filePath = path.join(uploadsDir, filename);
       
-      // Security: ensure file is within uploads directory
       if (!filePath.startsWith(uploadsDir)) {
         return res.status(403).send("Forbidden");
       }
@@ -72,13 +77,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // View file endpoint - public access
   app.get("/api/files/view/:filename", (req, res) => {
     try {
       const filename = req.params.filename;
       const filePath = path.join(uploadsDir, filename);
       
-      // Security: ensure file is within uploads directory
       if (!filePath.startsWith(uploadsDir)) {
         return res.status(403).send("Forbidden");
       }
@@ -115,7 +118,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         password: hashedPassword,
       });
 
-      // Generate JWT token
       const secret = process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production";
       const token = jwt.sign({ userId: user.id }, secret, { expiresIn: "7d" });
 
@@ -143,11 +145,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).send("Invalid username or password");
       }
 
-      // Generate JWT token
       const secret = process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production";
       const token = jwt.sign({ userId: user.id }, secret, { expiresIn: "7d" });
 
-      console.log(`✅ Login: User ${user.id} → JWT Token generated`);
+      console.log(`Login: User ${user.id} -> JWT Token generated`);
 
       res.json({ ok: true, token });
     } catch (error) {
@@ -160,7 +161,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.post("/api/auth/logout", (req, res) => {
-    // JWT doesn't require server-side logout - just clear on client
     res.json({ ok: true });
   });
 
@@ -171,14 +171,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/users", requireAuth, requireRole(["super-admin", "admin"]), async (req, res) => {
     try {
       if (req.user.role === "admin") {
-        // Admins see ONLY their company users - validate company assignment
         if (!req.user.companyId) {
           return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
         }
         const companyUsers = await storage.getUsersByCompany(req.user.companyId);
         res.json(companyUsers);
       } else {
-        // Super-admin sees ONLY admin users (one per company)
         const adminUsers = await db
           .select()
           .from(users)
@@ -196,12 +194,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertUserSchema.parse(req.body);
 
-      // Only super-admin can create other super-admins or admins
       if ((data.role === "super-admin" || data.role === "admin") && req.user.role !== "super-admin") {
         return res.status(403).send("Solo el Super Admin puede crear Admins");
       }
 
-      // Admin users must assign the user to their own company - FORCE it
       if (req.user.role === "admin") {
         data.companyId = req.user.companyId;
         if (!data.companyId) {
@@ -209,8 +205,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Super-admin can create any role without companyId (will assign later)
-      // Only admin users MUST assign company when creating users
       if (req.user.role === "admin" && (data.role === "operator" || data.role === "viewer")) {
         if (!data.companyId) {
           return res.status(400).send("Debes asignar una empresa para operadores y visualizadores");
@@ -224,7 +218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const existingEmail = await storage.getUserByEmail(data.email);
       if (existingEmail) {
-        return res.status(400).send("El correo ya está registrado");
+        return res.status(400).send("El correo ya esta registrado");
       }
 
       const hashedPassword = await bcrypt.hash(data.password, 10);
@@ -252,20 +246,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).send("Usuario no encontrado");
       }
 
-      // Cannot delete super-admin except by super-admin
       if (userToDelete.role === "super-admin") {
         return res.status(403).send("No puedes eliminar el Super Admin");
       }
 
-      // Admin can only delete users from their own company
       if (req.user.role === "admin" && userToDelete.companyId !== req.user.companyId) {
         return res.status(403).send("No puedes eliminar usuarios de otra empresa");
       }
 
-      // Delete associated print jobs first (use sql directly for simplicity)
       await sql`DELETE FROM print_jobs WHERE user_id = ${req.params.id}`;
       
-      // Then delete the user
       await storage.deleteUser(req.params.id);
       res.json({ success: true });
     } catch (error) {
@@ -279,17 +269,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let companyId: string | undefined;
       
       if (req.user.role === "super-admin") {
-        companyId = undefined; // Super-admin sees all
+        companyId = undefined;
       } else {
-        // Admin/Operator/Viewer MUST have companyId
         if (!req.user.companyId) {
           return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
         }
         companyId = req.user.companyId;
       }
       
-      const printers = await storage.getAllPrinters(companyId);
-      res.json(printers);
+      const printerList = await storage.getAllPrinters(companyId);
+      res.json(printerList);
     } catch (error) {
       console.error("Get printers error:", error);
       res.status(500).send("Failed to fetch printers");
@@ -298,14 +287,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/printers", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
     try {
-      // Admin/Operator MUST have companyId
       if (!req.user.companyId) {
         return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
       }
 
       const data = insertPrinterSchema.parse(req.body);
       
-      // FORCE assign printer to user's company
       data.companyId = req.user.companyId;
       
       const printer = await storage.createPrinter(data);
@@ -319,6 +306,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/printers/:id", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      const printer = await storage.getPrinter(req.params.id);
+      if (!printer) {
+        return res.status(404).send("Impresora no encontrada");
+      }
+
+      if (printer.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes editar impresoras de otra empresa");
+      }
+
+      const data = insertPrinterSchema.partial().parse(req.body);
+      const updatedPrinter = await storage.updatePrinter(req.params.id, data);
+      res.json(updatedPrinter);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Update printer error:", error);
+      res.status(500).send("Failed to update printer");
+    }
+  });
+
   app.delete("/api/printers/:id", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
     try {
       const printer = await storage.getPrinter(req.params.id);
@@ -326,7 +336,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).send("Impresora no encontrada");
       }
 
-      // Can only delete printers from own company
       if (printer.companyId !== req.user.companyId) {
         return res.status(403).send("No puedes eliminar impresoras de otra empresa");
       }
@@ -339,14 +348,372 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DEPARTMENTS CRUD
+  app.get("/api/departments", requireAuth, async (req, res) => {
+    try {
+      let companyId: string | undefined;
+      
+      if (req.user.role === "super-admin") {
+        companyId = undefined;
+      } else {
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+        companyId = req.user.companyId;
+      }
+      
+      const depts = await storage.getAllDepartments(companyId);
+      res.json(depts);
+    } catch (error) {
+      console.error("Get departments error:", error);
+      res.status(500).send("Failed to fetch departments");
+    }
+  });
+
+  app.post("/api/departments", requireAuth, requireRole(["admin"]), async (req, res) => {
+    try {
+      if (!req.user.companyId) {
+        return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+      }
+
+      const data = insertDepartmentSchema.parse({
+        ...req.body,
+        companyId: req.user.companyId,
+      });
+      
+      const dept = await storage.createDepartment(data);
+      res.json(dept);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Create department error:", error);
+      res.status(500).send("Failed to create department");
+    }
+  });
+
+  app.put("/api/departments/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    try {
+      const dept = await storage.getDepartment(req.params.id);
+      if (!dept) {
+        return res.status(404).send("Departamento no encontrado");
+      }
+
+      if (dept.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes editar departamentos de otra empresa");
+      }
+
+      const data = insertDepartmentSchema.partial().parse(req.body);
+      const updatedDept = await storage.updateDepartment(req.params.id, data);
+      res.json(updatedDept);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Update department error:", error);
+      res.status(500).send("Failed to update department");
+    }
+  });
+
+  app.delete("/api/departments/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
+    try {
+      const dept = await storage.getDepartment(req.params.id);
+      if (!dept) {
+        return res.status(404).send("Departamento no encontrado");
+      }
+
+      if (dept.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes eliminar departamentos de otra empresa");
+      }
+
+      await storage.deleteDepartment(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete department error:", error);
+      res.status(500).send("Failed to delete department");
+    }
+  });
+
+  // PAPER TYPES CRUD
+  app.get("/api/paper-types", requireAuth, async (req, res) => {
+    try {
+      let companyId: string | undefined;
+      
+      if (req.user.role === "super-admin") {
+        companyId = undefined;
+      } else {
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+        companyId = req.user.companyId;
+      }
+      
+      const types = await storage.getAllPaperTypes(companyId);
+      res.json(types);
+    } catch (error) {
+      console.error("Get paper types error:", error);
+      res.status(500).send("Failed to fetch paper types");
+    }
+  });
+
+  app.post("/api/paper-types", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      if (!req.user.companyId) {
+        return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+      }
+
+      const data = insertPaperTypeSchema.parse({
+        ...req.body,
+        companyId: req.user.companyId,
+        weight: parseInt(req.body.weight),
+        stock: parseInt(req.body.stock || "0"),
+      });
+      
+      const paperType = await storage.createPaperType(data);
+      res.json(paperType);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Create paper type error:", error);
+      res.status(500).send("Failed to create paper type");
+    }
+  });
+
+  app.put("/api/paper-types/:id", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      const paperType = await storage.getPaperType(req.params.id);
+      if (!paperType) {
+        return res.status(404).send("Tipo de papel no encontrado");
+      }
+
+      if (paperType.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes editar tipos de papel de otra empresa");
+      }
+
+      const data = insertPaperTypeSchema.partial().parse({
+        ...req.body,
+        weight: req.body.weight ? parseInt(req.body.weight) : undefined,
+        stock: req.body.stock ? parseInt(req.body.stock) : undefined,
+      });
+      const updatedPaperType = await storage.updatePaperType(req.params.id, data);
+      res.json(updatedPaperType);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Update paper type error:", error);
+      res.status(500).send("Failed to update paper type");
+    }
+  });
+
+  app.delete("/api/paper-types/:id", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      const paperType = await storage.getPaperType(req.params.id);
+      if (!paperType) {
+        return res.status(404).send("Tipo de papel no encontrado");
+      }
+
+      if (paperType.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes eliminar tipos de papel de otra empresa");
+      }
+
+      await storage.deletePaperType(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete paper type error:", error);
+      res.status(500).send("Failed to delete paper type");
+    }
+  });
+
+  // TONER INVENTORY CRUD
+  app.get("/api/toner-inventory", requireAuth, async (req, res) => {
+    try {
+      let companyId: string | undefined;
+      
+      if (req.user.role === "super-admin") {
+        companyId = undefined;
+      } else {
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+        companyId = req.user.companyId;
+      }
+      
+      const inventory = await storage.getAllTonerInventory(companyId);
+      res.json(inventory);
+    } catch (error) {
+      console.error("Get toner inventory error:", error);
+      res.status(500).send("Failed to fetch toner inventory");
+    }
+  });
+
+  app.post("/api/toner-inventory", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      if (!req.user.companyId) {
+        return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+      }
+
+      const data = insertTonerInventorySchema.parse({
+        ...req.body,
+        companyId: req.user.companyId,
+        stock: parseInt(req.body.stock || "0"),
+        minStock: parseInt(req.body.minStock || "5"),
+      });
+      
+      const toner = await storage.createTonerInventory(data);
+      res.json(toner);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Create toner inventory error:", error);
+      res.status(500).send("Failed to create toner inventory");
+    }
+  });
+
+  app.put("/api/toner-inventory/:id", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      const toner = await storage.getTonerInventory(req.params.id);
+      if (!toner) {
+        return res.status(404).send("Toner no encontrado");
+      }
+
+      if (toner.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes editar inventario de otra empresa");
+      }
+
+      const data = insertTonerInventorySchema.partial().parse({
+        ...req.body,
+        stock: req.body.stock ? parseInt(req.body.stock) : undefined,
+        minStock: req.body.minStock ? parseInt(req.body.minStock) : undefined,
+      });
+      const updatedToner = await storage.updateTonerInventory(req.params.id, data);
+      res.json(updatedToner);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Update toner inventory error:", error);
+      res.status(500).send("Failed to update toner inventory");
+    }
+  });
+
+  app.delete("/api/toner-inventory/:id", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      const toner = await storage.getTonerInventory(req.params.id);
+      if (!toner) {
+        return res.status(404).send("Toner no encontrado");
+      }
+
+      if (toner.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes eliminar inventario de otra empresa");
+      }
+
+      await storage.deleteTonerInventory(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete toner inventory error:", error);
+      res.status(500).send("Failed to delete toner inventory");
+    }
+  });
+
+  // MAINTENANCE LOGS CRUD
+  app.get("/api/maintenance-logs", requireAuth, async (req, res) => {
+    try {
+      let companyId: string | undefined;
+      
+      if (req.user.role === "super-admin") {
+        companyId = undefined;
+      } else {
+        if (!req.user.companyId) {
+          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+        }
+        companyId = req.user.companyId;
+      }
+      
+      const logs = await storage.getAllMaintenanceLogs(companyId);
+      res.json(logs);
+    } catch (error) {
+      console.error("Get maintenance logs error:", error);
+      res.status(500).send("Failed to fetch maintenance logs");
+    }
+  });
+
+  app.post("/api/maintenance-logs", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      if (!req.user.companyId) {
+        return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
+      }
+
+      const printer = await storage.getPrinter(req.body.printerId);
+      if (!printer || printer.companyId !== req.user.companyId) {
+        return res.status(403).send("Impresora no valida");
+      }
+
+      const data = insertMaintenanceLogSchema.parse(req.body);
+      
+      const log = await storage.createMaintenanceLog(data);
+      res.json(log);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Create maintenance log error:", error);
+      res.status(500).send("Failed to create maintenance log");
+    }
+  });
+
+  app.put("/api/maintenance-logs/:id", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      const log = await storage.getMaintenanceLog(req.params.id);
+      if (!log) {
+        return res.status(404).send("Registro de mantenimiento no encontrado");
+      }
+
+      if (log.printer.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes editar registros de otra empresa");
+      }
+
+      const data = insertMaintenanceLogSchema.partial().parse(req.body);
+      const updatedLog = await storage.updateMaintenanceLog(req.params.id, data);
+      res.json(updatedLog);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).send(error.errors[0].message);
+      }
+      console.error("Update maintenance log error:", error);
+      res.status(500).send("Failed to update maintenance log");
+    }
+  });
+
+  app.delete("/api/maintenance-logs/:id", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
+    try {
+      const log = await storage.getMaintenanceLog(req.params.id);
+      if (!log) {
+        return res.status(404).send("Registro de mantenimiento no encontrado");
+      }
+
+      if (log.printer.companyId !== req.user.companyId) {
+        return res.status(403).send("No puedes eliminar registros de otra empresa");
+      }
+
+      await storage.deleteMaintenanceLog(req.params.id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete maintenance log error:", error);
+      res.status(500).send("Failed to delete maintenance log");
+    }
+  });
+
+  // PRINT JOBS
   app.get("/api/print-jobs", requireAuth, async (req, res) => {
     try {
       let companyId: string | undefined;
       
       if (req.user.role === "super-admin") {
-        companyId = undefined; // Super-admin sees all
+        companyId = undefined;
       } else {
-        // Admin/Operator/Viewer MUST have companyId
         if (!req.user.companyId) {
           return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
         }
@@ -396,11 +763,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).send("Print job not found");
       }
 
-      // Verify user's company access
-      if (req.user.role !== "super-admin" && job.user.companyId !== req.user.companyId) {
-        return res.status(403).send("No tienes acceso a este trabajo de impresión");
-      }
-
       res.json(job);
     } catch (error) {
       console.error("Get print job error:", error);
@@ -413,9 +775,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let companyId: string | undefined;
       
       if (req.user.role === "super-admin") {
-        companyId = undefined; // Super-admin sees everything
+        companyId = undefined;
       } else {
-        // Admin/Operator/Viewer MUST have companyId
         if (!req.user.companyId) {
           return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
         }
@@ -432,7 +793,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/consumption", requireAuth, requireRole(["admin", "operator"]), async (req, res) => {
     try {
-      // Admin/Operator must have companyId
       if (!req.user.companyId) {
         return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
       }
@@ -448,8 +808,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/companies", requireAuth, requireRole(["super-admin"]), async (req, res) => {
     try {
-      const companies = await storage.getAllCompanies();
-      res.json(companies);
+      const companiesList = await storage.getAllCompanies();
+      res.json(companiesList);
     } catch (error) {
       console.error("Get companies error:", error);
       res.status(500).send("Failed to fetch companies");
@@ -472,17 +832,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.delete("/api/companies/:id", requireAuth, requireRole(["super-admin"]), async (req, res) => {
     try {
-      // Delete in cascade order to avoid FK constraints
-      // 1. Delete all print jobs for users in this company
       await sql`DELETE FROM print_jobs WHERE user_id IN (SELECT id FROM users WHERE company_id = ${req.params.id})`;
-      
-      // 2. Delete users in this company
+      await sql`DELETE FROM maintenance_logs WHERE printer_id IN (SELECT id FROM printers WHERE company_id = ${req.params.id})`;
+      await sql`DELETE FROM toner_inventory WHERE company_id = ${req.params.id}`;
+      await sql`DELETE FROM paper_types WHERE company_id = ${req.params.id}`;
       await db.delete(users).where(eq(users.companyId, req.params.id));
-      
-      // 3. Delete printers in this company
       await db.delete(printers).where(eq(printers.companyId, req.params.id));
+      await db.delete(departments).where(eq(departments.companyId, req.params.id));
       
-      // 4. Finally delete the company
       await storage.deleteCompany(req.params.id);
       res.json({ success: true });
     } catch (error) {

@@ -1,7 +1,10 @@
 import { drizzle } from "drizzle-orm/postgres-js";
-import { eq, and, inArray } from "drizzle-orm";
+import { eq, and, inArray, desc } from "drizzle-orm";
 import postgres from "postgres";
-import { users, printers, printJobs, companies } from "@shared/schema";
+import { 
+  users, printers, printJobs, companies, 
+  departments, paperTypes, tonerInventory, maintenanceLogs 
+} from "@shared/schema";
 import type {
   User,
   InsertUser,
@@ -14,6 +17,15 @@ import type {
   ConsumptionStats,
   Company,
   InsertCompany,
+  Department,
+  InsertDepartment,
+  PaperType,
+  InsertPaperType,
+  TonerInventory,
+  InsertTonerInventory,
+  MaintenanceLog,
+  InsertMaintenanceLog,
+  MaintenanceLogWithDetails,
 } from "@shared/schema";
 
 type UserWithoutPassword = Omit<User, "password">;
@@ -30,6 +42,7 @@ export interface IStorage {
   getPrinter(id: string): Promise<Printer | undefined>;
   getAllPrinters(companyId?: string): Promise<Printer[]>;
   createPrinter(printer: InsertPrinter): Promise<Printer>;
+  updatePrinter(id: string, printer: Partial<InsertPrinter>): Promise<Printer | undefined>;
   deletePrinter(id: string): Promise<void>;
 
   getPrintJob(id: string): Promise<PrintJobWithDetails | undefined>;
@@ -41,6 +54,30 @@ export interface IStorage {
   createCompany(company: InsertCompany): Promise<Company>;
   deleteCompany(id: string): Promise<void>;
   updateCompanyAdmin(id: string, adminId: string | null): Promise<Company | undefined>;
+
+  getDepartment(id: string): Promise<Department | undefined>;
+  getAllDepartments(companyId?: string): Promise<Department[]>;
+  createDepartment(department: InsertDepartment): Promise<Department>;
+  updateDepartment(id: string, department: Partial<InsertDepartment>): Promise<Department | undefined>;
+  deleteDepartment(id: string): Promise<void>;
+
+  getPaperType(id: string): Promise<PaperType | undefined>;
+  getAllPaperTypes(companyId?: string): Promise<PaperType[]>;
+  createPaperType(paperType: InsertPaperType): Promise<PaperType>;
+  updatePaperType(id: string, paperType: Partial<InsertPaperType>): Promise<PaperType | undefined>;
+  deletePaperType(id: string): Promise<void>;
+
+  getTonerInventory(id: string): Promise<TonerInventory | undefined>;
+  getAllTonerInventory(companyId?: string): Promise<TonerInventory[]>;
+  createTonerInventory(toner: InsertTonerInventory): Promise<TonerInventory>;
+  updateTonerInventory(id: string, toner: Partial<InsertTonerInventory>): Promise<TonerInventory | undefined>;
+  deleteTonerInventory(id: string): Promise<void>;
+
+  getMaintenanceLog(id: string): Promise<MaintenanceLogWithDetails | undefined>;
+  getAllMaintenanceLogs(companyId?: string): Promise<MaintenanceLogWithDetails[]>;
+  createMaintenanceLog(log: InsertMaintenanceLog): Promise<MaintenanceLog>;
+  updateMaintenanceLog(id: string, log: Partial<InsertMaintenanceLog>): Promise<MaintenanceLog | undefined>;
+  deleteMaintenanceLog(id: string): Promise<void>;
 
   getDashboardStats(companyId?: string): Promise<DashboardStats>;
   getConsumptionStats(period: string, companyId?: string): Promise<ConsumptionStats>;
@@ -59,7 +96,6 @@ export class PostgresStorage implements IStorage {
     this.initializationAttempted = true;
 
     try {
-      // Create companies table
       await sql.unsafe(`
         CREATE TABLE IF NOT EXISTS companies (
           id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -70,7 +106,18 @@ export class PostgresStorage implements IStorage {
         );
       `);
 
-      // Create users table
+      await sql.unsafe(`
+        CREATE TABLE IF NOT EXISTS departments (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          name text NOT NULL,
+          description text,
+          company_id varchar NOT NULL,
+          manager_id varchar,
+          budget decimal(10,2),
+          created_at timestamp NOT NULL DEFAULT now()
+        );
+      `);
+
       await sql.unsafe(`
         CREATE TABLE IF NOT EXISTS users (
           id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -79,24 +126,26 @@ export class PostgresStorage implements IStorage {
           email text NOT NULL UNIQUE,
           full_name text NOT NULL,
           role text NOT NULL DEFAULT 'operator',
-          company_id varchar REFERENCES companies(id),
+          company_id varchar,
+          department_id varchar,
           created_at timestamp NOT NULL DEFAULT now()
         );
       `);
 
-      // Add FK constraint if it doesn't exist
-      try {
-        await sql.unsafe(`
-          ALTER TABLE companies ADD CONSTRAINT companies_admin_id_users_id_fk 
-          FOREIGN KEY (admin_id) REFERENCES users(id) ON DELETE SET NULL;
-        `);
-      } catch (e: any) {
-        if (!e.message?.includes("already exists")) {
-          throw e;
-        }
-      }
+      await sql.unsafe(`
+        CREATE TABLE IF NOT EXISTS paper_types (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          name text NOT NULL,
+          size text NOT NULL,
+          weight integer NOT NULL,
+          color text NOT NULL DEFAULT 'white',
+          price_per_sheet decimal(10,4),
+          stock integer NOT NULL DEFAULT 0,
+          company_id varchar,
+          created_at timestamp NOT NULL DEFAULT now()
+        );
+      `);
 
-      // Create printers table
       await sql.unsafe(`
         CREATE TABLE IF NOT EXISTS printers (
           id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -104,18 +153,49 @@ export class PostgresStorage implements IStorage {
           location text NOT NULL,
           model text NOT NULL,
           ip_address text,
-          company_id varchar REFERENCES companies(id),
+          company_id varchar,
+          department_id varchar,
           status text NOT NULL DEFAULT 'active',
           created_at timestamp NOT NULL DEFAULT now()
         );
       `);
 
-      // Create print_jobs table
+      await sql.unsafe(`
+        CREATE TABLE IF NOT EXISTS toner_inventory (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          name text NOT NULL,
+          brand text NOT NULL,
+          model text NOT NULL,
+          color text NOT NULL,
+          stock integer NOT NULL DEFAULT 0,
+          min_stock integer NOT NULL DEFAULT 5,
+          price_per_unit decimal(10,2),
+          printer_id varchar,
+          company_id varchar,
+          created_at timestamp NOT NULL DEFAULT now()
+        );
+      `);
+
+      await sql.unsafe(`
+        CREATE TABLE IF NOT EXISTS maintenance_logs (
+          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
+          printer_id varchar NOT NULL,
+          technician_id varchar,
+          maintenance_type text NOT NULL,
+          description text NOT NULL,
+          cost decimal(10,2),
+          status text NOT NULL DEFAULT 'pending',
+          scheduled_date timestamp,
+          completed_date timestamp,
+          created_at timestamp NOT NULL DEFAULT now()
+        );
+      `);
+
       await sql.unsafe(`
         CREATE TABLE IF NOT EXISTS print_jobs (
           id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id varchar NOT NULL REFERENCES users(id),
-          printer_id varchar NOT NULL REFERENCES printers(id),
+          user_id varchar NOT NULL,
+          printer_id varchar NOT NULL,
           document_name text NOT NULL,
           file_name text NOT NULL,
           file_path text NOT NULL,
@@ -124,12 +204,12 @@ export class PostgresStorage implements IStorage {
           copies integer NOT NULL DEFAULT 1,
           color_mode text NOT NULL DEFAULT 'bw',
           paper_size text NOT NULL DEFAULT 'letter',
+          paper_type_id varchar,
           status text NOT NULL DEFAULT 'completed',
           printed_at timestamp NOT NULL DEFAULT now()
         );
       `);
 
-      // Create session table
       await sql.unsafe(`
         CREATE TABLE IF NOT EXISTS session (
           sid varchar PRIMARY KEY,
@@ -138,7 +218,7 @@ export class PostgresStorage implements IStorage {
         );
       `);
 
-      console.log("✅ Database tables initialized");
+      console.log("Database tables initialized successfully");
     } catch (error) {
       console.error("Error initializing database tables:", error);
     }
@@ -152,7 +232,6 @@ export class PostgresStorage implements IStorage {
       if (!superAdminExists) {
         const hashedPassword = await bcrypt.default.hash("123456", 10);
         
-        // Create default company
         const defaultCompanyExists = await this.getCompany("00000000-0000-0000-0000-000000000010");
         if (!defaultCompanyExists) {
           await db.insert(companies).values({
@@ -161,8 +240,17 @@ export class PostgresStorage implements IStorage {
             email: "empresa.prueba@sentinel.cl",
           }).onConflictDoNothing();
         }
+
+        const deptExists = await this.getDepartment("00000000-0000-0000-0000-000000000020");
+        if (!deptExists) {
+          await db.insert(departments).values({
+            id: "00000000-0000-0000-0000-000000000020",
+            name: "Departamento General",
+            description: "Departamento principal de la empresa",
+            companyId: "00000000-0000-0000-0000-000000000010",
+          }).onConflictDoNothing();
+        }
         
-        // Create super admin
         await db.insert(users).values({
           id: "00000000-0000-0000-0000-000000000001",
           username: "sentinelpro",
@@ -170,10 +258,9 @@ export class PostgresStorage implements IStorage {
           email: "sentinelpro@sentinel.cl",
           fullName: "Sentinel Pro - Super Admin",
           role: "super-admin",
-          companyId: undefined, // Super admin has no company
+          companyId: undefined,
         }).onConflictDoNothing();
         
-        // Create default admin user for testing
         const adminExists = await this.getUserByUsername("admin");
         if (!adminExists) {
           const adminPassword = await bcrypt.default.hash("123456", 10);
@@ -185,11 +272,34 @@ export class PostgresStorage implements IStorage {
             fullName: "Administrador",
             role: "admin",
             companyId: "00000000-0000-0000-0000-000000000010",
+            departmentId: "00000000-0000-0000-0000-000000000020",
           }).onConflictDoNothing();
         }
+
+        await db.insert(paperTypes).values({
+          id: "00000000-0000-0000-0000-000000000030",
+          name: "Papel Bond Carta",
+          size: "letter",
+          weight: 75,
+          color: "white",
+          pricePerSheet: "0.01",
+          stock: 5000,
+          companyId: "00000000-0000-0000-0000-000000000010",
+        }).onConflictDoNothing();
+
+        await db.insert(paperTypes).values({
+          id: "00000000-0000-0000-0000-000000000031",
+          name: "Papel Bond A4",
+          size: "a4",
+          weight: 80,
+          color: "white",
+          pricePerSheet: "0.012",
+          stock: 3000,
+          companyId: "00000000-0000-0000-0000-000000000010",
+        }).onConflictDoNothing();
         
-        console.log("✅ Super admin created: sentinelpro / 123456");
-        console.log("✅ Test admin created: admin / 123456 (Empresa De Prueba)");
+        console.log("Super admin created: sentinelpro / 123456");
+        console.log("Test admin created: admin / 123456 (Empresa De Prueba)");
       }
     } catch (error) {
       console.error("Error initializing super admin:", error);
@@ -220,7 +330,7 @@ export class PostgresStorage implements IStorage {
     let query = db.select().from(users);
     
     if (companyId) {
-      query = query.where(eq(users.companyId, companyId));
+      query = query.where(eq(users.companyId, companyId)) as typeof query;
     }
     
     const result = await query.orderBy(users.createdAt);
@@ -228,7 +338,6 @@ export class PostgresStorage implements IStorage {
   }
 
   async getUsersByCompany(companyId: string): Promise<UserWithoutPassword[]> {
-    // ALWAYS filter by company - never return all users
     const result = await db
       .select()
       .from(users)
@@ -250,13 +359,10 @@ export class PostgresStorage implements IStorage {
   }
 
   async getAllPrinters(companyId?: string): Promise<Printer[]> {
-    let query = db.select().from(printers);
-    
     if (companyId) {
-      query = query.where(eq(printers.companyId, companyId));
+      return db.select().from(printers).where(eq(printers.companyId, companyId)).orderBy(printers.createdAt);
     }
-    
-    return query.orderBy(printers.createdAt);
+    return db.select().from(printers).orderBy(printers.createdAt);
   }
 
   async createPrinter(insertPrinter: InsertPrinter): Promise<Printer> {
@@ -264,8 +370,156 @@ export class PostgresStorage implements IStorage {
     return result[0];
   }
 
+  async updatePrinter(id: string, data: Partial<InsertPrinter>): Promise<Printer | undefined> {
+    const result = await db.update(printers).set(data).where(eq(printers.id, id)).returning();
+    return result[0];
+  }
+
   async deletePrinter(id: string): Promise<void> {
     await db.delete(printers).where(eq(printers.id, id));
+  }
+
+  async getDepartment(id: string): Promise<Department | undefined> {
+    const result = await db.select().from(departments).where(eq(departments.id, id));
+    return result[0];
+  }
+
+  async getAllDepartments(companyId?: string): Promise<Department[]> {
+    if (companyId) {
+      return db.select().from(departments).where(eq(departments.companyId, companyId)).orderBy(departments.createdAt);
+    }
+    return db.select().from(departments).orderBy(departments.createdAt);
+  }
+
+  async createDepartment(insertDepartment: InsertDepartment): Promise<Department> {
+    const result = await db.insert(departments).values(insertDepartment).returning();
+    return result[0];
+  }
+
+  async updateDepartment(id: string, data: Partial<InsertDepartment>): Promise<Department | undefined> {
+    const result = await db.update(departments).set(data).where(eq(departments.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteDepartment(id: string): Promise<void> {
+    await db.delete(departments).where(eq(departments.id, id));
+  }
+
+  async getPaperType(id: string): Promise<PaperType | undefined> {
+    const result = await db.select().from(paperTypes).where(eq(paperTypes.id, id));
+    return result[0];
+  }
+
+  async getAllPaperTypes(companyId?: string): Promise<PaperType[]> {
+    if (companyId) {
+      return db.select().from(paperTypes).where(eq(paperTypes.companyId, companyId)).orderBy(paperTypes.createdAt);
+    }
+    return db.select().from(paperTypes).orderBy(paperTypes.createdAt);
+  }
+
+  async createPaperType(insertPaperType: InsertPaperType): Promise<PaperType> {
+    const result = await db.insert(paperTypes).values(insertPaperType).returning();
+    return result[0];
+  }
+
+  async updatePaperType(id: string, data: Partial<InsertPaperType>): Promise<PaperType | undefined> {
+    const result = await db.update(paperTypes).set(data).where(eq(paperTypes.id, id)).returning();
+    return result[0];
+  }
+
+  async deletePaperType(id: string): Promise<void> {
+    await db.delete(paperTypes).where(eq(paperTypes.id, id));
+  }
+
+  async getTonerInventory(id: string): Promise<TonerInventory | undefined> {
+    const result = await db.select().from(tonerInventory).where(eq(tonerInventory.id, id));
+    return result[0];
+  }
+
+  async getAllTonerInventory(companyId?: string): Promise<TonerInventory[]> {
+    if (companyId) {
+      return db.select().from(tonerInventory).where(eq(tonerInventory.companyId, companyId)).orderBy(tonerInventory.createdAt);
+    }
+    return db.select().from(tonerInventory).orderBy(tonerInventory.createdAt);
+  }
+
+  async createTonerInventory(insertToner: InsertTonerInventory): Promise<TonerInventory> {
+    const result = await db.insert(tonerInventory).values(insertToner).returning();
+    return result[0];
+  }
+
+  async updateTonerInventory(id: string, data: Partial<InsertTonerInventory>): Promise<TonerInventory | undefined> {
+    const result = await db.update(tonerInventory).set(data).where(eq(tonerInventory.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteTonerInventory(id: string): Promise<void> {
+    await db.delete(tonerInventory).where(eq(tonerInventory.id, id));
+  }
+
+  async getMaintenanceLog(id: string): Promise<MaintenanceLogWithDetails | undefined> {
+    const result = await db.select().from(maintenanceLogs).where(eq(maintenanceLogs.id, id));
+    if (!result[0]) return undefined;
+
+    const log = result[0];
+    const printer = await this.getPrinter(log.printerId);
+    if (!printer) return undefined;
+
+    let technician: Pick<User, "id" | "fullName"> | undefined;
+    if (log.technicianId) {
+      const tech = await this.getUser(log.technicianId);
+      if (tech) {
+        technician = { id: tech.id, fullName: tech.fullName };
+      }
+    }
+
+    return {
+      ...log,
+      printer: { id: printer.id, name: printer.name, location: printer.location, model: printer.model },
+      technician,
+    };
+  }
+
+  async getAllMaintenanceLogs(companyId?: string): Promise<MaintenanceLogWithDetails[]> {
+    const logs = await db.select().from(maintenanceLogs).orderBy(desc(maintenanceLogs.createdAt));
+    const result: MaintenanceLogWithDetails[] = [];
+
+    for (const log of logs) {
+      const printer = await this.getPrinter(log.printerId);
+      if (!printer) continue;
+
+      if (companyId && printer.companyId !== companyId) continue;
+
+      let technician: Pick<User, "id" | "fullName"> | undefined;
+      if (log.technicianId) {
+        const tech = await this.getUser(log.technicianId);
+        if (tech) {
+          technician = { id: tech.id, fullName: tech.fullName };
+        }
+      }
+
+      result.push({
+        ...log,
+        printer: { id: printer.id, name: printer.name, location: printer.location, model: printer.model },
+        technician,
+      });
+    }
+
+    return result;
+  }
+
+  async createMaintenanceLog(insertLog: InsertMaintenanceLog): Promise<MaintenanceLog> {
+    const result = await db.insert(maintenanceLogs).values(insertLog).returning();
+    return result[0];
+  }
+
+  async updateMaintenanceLog(id: string, data: Partial<InsertMaintenanceLog>): Promise<MaintenanceLog | undefined> {
+    const result = await db.update(maintenanceLogs).set(data).where(eq(maintenanceLogs.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteMaintenanceLog(id: string): Promise<void> {
+    await db.delete(maintenanceLogs).where(eq(maintenanceLogs.id, id));
   }
 
   async getPrintJob(id: string): Promise<PrintJobWithDetails | undefined> {
@@ -293,7 +547,7 @@ export class PostgresStorage implements IStorage {
   }
 
   async getAllPrintJobs(companyId?: string): Promise<PrintJobWithDetails[]> {
-    const jobs = await db.select().from(printJobs).orderBy(printJobs.printedAt);
+    const jobs = await db.select().from(printJobs).orderBy(desc(printJobs.printedAt));
     
     const jobsWithDetails: PrintJobWithDetails[] = [];
     for (const job of jobs) {
@@ -302,7 +556,6 @@ export class PostgresStorage implements IStorage {
 
       if (!user || !printer) continue;
       
-      // Filter by company if specified
       if (companyId && user.companyId !== companyId) continue;
 
       jobsWithDetails.push({
@@ -348,7 +601,6 @@ export class PostgresStorage implements IStorage {
   }
 
   async updateCompanyAdmin(id: string, adminId: string | null): Promise<Company | undefined> {
-    // If assigning an admin, also assign the company to that user
     if (adminId) {
       await db
         .update(users)
@@ -382,11 +634,9 @@ export class PostgresStorage implements IStorage {
     let printerCount = 0;
 
     if (!companyId) {
-      // Super-admin: count only admin users
       const allAdmins = await db.select().from(users).where(eq(users.role, "admin"));
       userCount = allAdmins.length;
     } else {
-      // Admin/Operator/Viewer: count ONLY their company users (excluding super-admin and admin)
       const companyUsers = await db
         .select()
         .from(users)
@@ -397,7 +647,6 @@ export class PostgresStorage implements IStorage {
       userCount = companyUsers.length;
     }
 
-    // Filter printers by company
     if (companyId) {
       const companyPrinters = await db
         .select()
@@ -409,7 +658,6 @@ export class PostgresStorage implements IStorage {
       printerCount = allPrinters.length;
     }
 
-    // Super-admin: count total companies
     const totalCompanies = !companyId 
       ? (await this.getAllCompanies()).length
       : undefined;
