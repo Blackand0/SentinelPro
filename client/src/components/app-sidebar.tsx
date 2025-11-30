@@ -57,13 +57,13 @@ export function AppSidebar() {
       title: "Analytics",
       url: "/analytics",
       icon: BarChart3,
-      roles: ["admin", "operator"],
+      roles: ["admin"],
     },
     {
       title: "Consumo",
       url: "/consumption",
       icon: FileText,
-      roles: ["admin", "operator"],
+      roles: ["admin"],
     },
   ];
 
@@ -128,7 +128,7 @@ export function AppSidebar() {
 
   const shouldShowManagement = user?.role === "admin" || user?.role === "super-admin";
   const shouldShowInventory = user?.role === "admin" || user?.role === "operator";
-  const shouldShowAnalytics = user?.role === "admin" || user?.role === "operator";
+  const shouldShowAnalytics = user?.role === "admin";
 
   const getInitials = (name: string) => {
     return name

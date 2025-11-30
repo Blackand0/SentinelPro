@@ -78,7 +78,7 @@ function AuthenticatedLayout() {
                 </ProtectedRoute>
               </Route>
               <Route path="/analytics">
-                <ProtectedRoute allowedRoles={["admin", "operator"]}>
+                <ProtectedRoute allowedRoles={["admin"]}>
                   <AnalyticsPage />
                 </ProtectedRoute>
               </Route>
