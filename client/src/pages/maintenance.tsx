@@ -48,6 +48,7 @@ import { es } from "date-fns/locale";
 import type { MaintenanceLogWithDetails } from "@shared/schema";
 
 const peripheralSchema = z.object({
+  name: z.string().min(1, "El nombre es requerido"),
   description: z.string().min(1, "La descripción es requerida"),
   category: z.enum(["purchase", "maintenance"]),
   cost: z.string().min(1, "El costo es requerido"),
@@ -84,6 +85,7 @@ export default function PeripheralsPage() {
   const form = useForm<PeripheralFormData>({
     resolver: zodResolver(peripheralSchema),
     defaultValues: {
+      name: "",
       description: "",
       category: "purchase",
       cost: "",
@@ -104,7 +106,7 @@ export default function PeripheralsPage() {
         body: JSON.stringify({
           printerId: "", // Empty for peripherals
           maintenanceType: data.category === "purchase" ? "purchase" : "maintenance",
-          description: data.description,
+          description: `${data.name}: ${data.description}`,
           cost: parseFloat(data.cost),
           status: "completed",
           scheduledDate: data.date,
@@ -144,10 +146,11 @@ export default function PeripheralsPage() {
         body: JSON.stringify({
           printerId: editingItem?.printerId || "",
           maintenanceType: data.category === "purchase" ? "purchase" : "maintenance",
-          description: data.description,
+          description: `${data.name}: ${data.description}`,
           cost: parseFloat(data.cost),
           status: "completed",
           scheduledDate: data.date,
+          notes: data.notes,
         }),
       });
       if (!res.ok) {
@@ -190,12 +193,15 @@ export default function PeripheralsPage() {
 
   const handleEdit = (item: MaintenanceLogWithDetails) => {
     setEditingItem(item);
+    const [name, ...descParts] = item.description.split(": ");
+    const desc = descParts.join(": ") || item.description;
     form.reset({
-      description: item.description,
+      name: name || "",
+      description: desc,
       category: item.maintenanceType === "purchase" ? "purchase" : "maintenance",
       cost: item.cost?.toString() || "",
       date: item.scheduledDate ? format(new Date(item.scheduledDate), "yyyy-MM-dd") : new Date().toISOString().split("T")[0],
-      notes: "",
+      notes: item.description,
     });
     setIsOpen(true);
   };
@@ -225,6 +231,7 @@ export default function PeripheralsPage() {
               onClick={() => {
                 setEditingItem(null);
                 form.reset({
+                  name: "",
                   description: "",
                   category: "purchase",
                   cost: "",
@@ -245,6 +252,18 @@ export default function PeripheralsPage() {
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nombre del Periférico *</Label>
+                <Input
+                  id="name"
+                  {...form.register("name")}
+                  placeholder="Ej: Tóner HP 85A, Cartucho Epson, Papel Fotográfico"
+                />
+                {form.formState.errors.name && (
+                  <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="category">Tipo *</Label>
                 <Select
@@ -359,6 +378,7 @@ export default function PeripheralsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Nombre</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead className="text-right">Costo</TableHead>
@@ -367,9 +387,13 @@ export default function PeripheralsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {items?.map((item) => (
+                  {items?.map((item) => {
+                    const [name, ...descParts] = item.description.split(": ");
+                    const desc = descParts.join(": ") || "";
+                    return (
                     <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.description}</TableCell>
+                      <TableCell className="font-medium">{name}</TableCell>
+                      <TableCell>{desc || item.description}</TableCell>
                       <TableCell>
                         <Badge variant={item.maintenanceType === "purchase" ? "default" : "secondary"}>
                           {item.maintenanceType === "purchase" ? "🛒 Compra" : "🔧 Mantenimiento"}
@@ -407,7 +431,8 @@ export default function PeripheralsPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

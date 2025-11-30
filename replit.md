@@ -22,9 +22,11 @@ Sentinel Pro is a multi-tenant web platform for small and medium-sized businesse
   - ✅ Updated sidebar navigation - **Single "Consumo" section** (no duplicates)
   - ✅ Removed Analytics section from sidebar (consolidated into Consumo)
 - ✅ **Periféricos Form Restructured:**
+  - ✅ **Name field added** - Required field for peripheral/item name
   - ✅ Category: Purchase (🛒) or Maintenance (🔧)
   - ✅ Description, Cost, Date, Notes fields
   - ✅ Total expenses summary card
+  - ✅ Table displays: Nombre | Descripción | Tipo | Costo | Fecha | Acciones
   - ✅ Costs automatically feed into monthly expenses dashboard
 - ✅ **Insumos Form Enhanced:**
   - ✅ Added "Precio por Hoja ($)" field in create/edit forms
