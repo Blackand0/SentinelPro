@@ -343,21 +343,6 @@ export default function PeripheralsPage() {
         </Dialog>
       </div>
 
-      {/* Resumen de costos */}
-      <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-blue-700 font-medium">Total de Gastos en Periféricos</p>
-              <p className="text-3xl font-bold text-blue-900 mt-2">
-                ${totalCost.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </p>
-            </div>
-            <DollarSign className="w-12 h-12 text-blue-400" />
-          </div>
-        </CardContent>
-      </Card>
-
       {isLoading ? (
         <Card>
           <CardContent className="p-8 text-center">Cargando periféricos...</CardContent>
