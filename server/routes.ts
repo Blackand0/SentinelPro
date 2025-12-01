@@ -664,7 +664,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         companyId: req.user.companyId,
       });
       
-      const log = await storage.createMaintenanceLog(data);
+      // Convert string dates to Date objects for Drizzle
+      const logData = {
+        ...data,
+        scheduledDate: data.scheduledDate ? new Date(data.scheduledDate) : undefined,
+        completedDate: data.completedDate ? new Date(data.completedDate) : undefined,
+      };
+      
+      const log = await storage.createMaintenanceLog(logData);
       res.json(log);
     } catch (error) {
       if (error instanceof z.ZodError) {
