@@ -175,57 +175,6 @@ export default function DashboardPage() {
       </Card>
       )}
 
-      {(user?.role === "operator" || user?.role === "viewer") && stats?.topUsers && stats.topUsers.length > 0 && (
-        <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Mejores Usuarios</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {stats.topUsers.map((user, index) => (
-                  <div
-                    key={user.userId}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
-                        {index + 1}
-                      </div>
-                      <span className="font-medium">{user.username}</span>
-                    </div>
-                    <Badge variant="secondary">{user.jobCount} trabajos</Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Mejores Impresoras</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {stats.topPrinters.map((printer, index) => (
-                  <div
-                    key={printer.printerId}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium">
-                        {index + 1}
-                      </div>
-                      <span className="font-medium">{printer.printerName}</span>
-                    </div>
-                    <Badge variant="secondary">{printer.jobCount} trabajos</Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }
