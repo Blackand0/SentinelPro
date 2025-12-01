@@ -216,8 +216,7 @@ export default function TonerInventoryPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          ...adjustingToner,
-          stock: newStock,
+          stock: newStock.toString(),
         }),
       });
       if (!res.ok) throw new Error("Error al ajustar");

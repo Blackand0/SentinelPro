@@ -170,8 +170,7 @@ export default function PaperTypesPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          ...adjustingStock,
-          stock: newStock,
+          stock: newStock.toString(),
         }),
       });
       if (!res.ok) throw new Error("Error al ajustar");
