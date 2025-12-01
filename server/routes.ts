@@ -823,13 +823,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
       }
 
+      const dateValue = req.body.date ? new Date(req.body.date) : new Date();
+      
       const data = insertConsumptionExpenseSchema.parse({
         ...req.body,
         companyId: req.user.companyId,
-        date: req.body.date || new Date().toISOString().split('T')[0],
+        date: dateValue.toISOString().split('T')[0],
       });
       
-      const expense = await storage.createConsumptionExpense(data);
+      const expense = await storage.createConsumptionExpense({
+        ...data,
+        date: new Date(data.date || new Date()),
+      });
       res.json(expense);
     } catch (error) {
       if (error instanceof z.ZodError) {
