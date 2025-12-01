@@ -210,12 +210,12 @@ export const insertMaintenanceLogSchema = createInsertSchema(maintenanceLogs).om
   id: true,
   createdAt: true,
 }).extend({
-  printerId: z.string().min(1, "La impresora es requerida"),
+  printerId: z.string().optional(),
   technicianId: z.string().optional(),
-  maintenanceType: z.enum(["preventive", "corrective", "emergency"]),
+  maintenanceType: z.enum(["preventive", "corrective", "emergency", "purchase", "maintenance"]),
   description: z.string().min(1, "La descripción es requerida"),
   cost: z.string().optional(),
-  status: z.enum(["pending", "in_progress", "completed", "cancelled"]).default("pending"),
+  status: z.enum(["pending", "in_progress", "completed", "cancelled"]).default("completed"),
   scheduledDate: z.string().optional(),
   completedDate: z.string().optional(),
 });
