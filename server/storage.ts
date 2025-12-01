@@ -809,14 +809,14 @@ export class PostgresStorage implements IStorage {
     // Get consumption expenses
     let totalExpenses = 0;
     try {
-      const expenses = await db.select().from(consumptionExpenses).where(
-        and(
-          eq(consumptionExpenses.companyId, companyId || ""),
-          ...(companyId ? [] : [])
-        )
-      );
+      let expenses: any[] = [];
+      if (companyId) {
+        expenses = await db.select().from(consumptionExpenses).where(eq(consumptionExpenses.companyId, companyId));
+      } else {
+        expenses = await db.select().from(consumptionExpenses);
+      }
       
-      const filteredExpenses = expenses.filter(e => new Date(e.createdAt) >= startDate);
+      const filteredExpenses = expenses.filter(e => new Date(e.date) >= startDate);
       totalExpenses = filteredExpenses.reduce((sum, e) => sum + parseFloat(e.amount.toString()), 0);
     } catch (error) {
       console.error("Error getting expenses:", error);

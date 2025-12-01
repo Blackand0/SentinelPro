@@ -190,7 +190,10 @@ export default function PaperTypesPage() {
             amount: expenseAmount.toString(),
             description: `Consumo de ${adjustingStock.name}: ${adjustmentQuantity} resmas`,
           }),
-        });
+        }).catch(e => console.error("Error registering expense:", e));
+        
+        // Invalidate consumption query to show updated expenses
+        queryClient.invalidateQueries({ queryKey: ["/api/consumption"] });
       }
       
       return res.json();

@@ -117,10 +117,27 @@ export default function PeripheralsPage() {
         const error = await res.text();
         throw new Error(error);
       }
-      return res.json();
+      const result = res.json();
+      
+      // Register expense when creating peripheral
+      await fetch("/api/consumption-expenses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          expenseType: "peripheral",
+          amount: parseFloat(data.cost),
+          description: `${data.category === "purchase" ? "Compra" : "Mantenimiento"}: ${data.name}`,
+        }),
+      });
+      
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/maintenance-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/consumption"] });
       const category = form.getValues("category");
       toast({ 
         title: "Periférico registrado", 
@@ -157,10 +174,32 @@ export default function PeripheralsPage() {
         const error = await res.text();
         throw new Error(error);
       }
-      return res.json();
+      const result = res.json();
+      
+      // Register additional expense if cost changed (difference)
+      const oldCost = parseFloat(editingItem?.cost?.toString() || "0");
+      const newCost = parseFloat(data.cost);
+      if (newCost > oldCost) {
+        const difference = newCost - oldCost;
+        await fetch("/api/consumption-expenses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            expenseType: "peripheral",
+            amount: difference,
+            description: `Ajuste de costo: ${data.name}`,
+          }),
+        });
+      }
+      
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/maintenance-logs"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/consumption"] });
       toast({ title: "Actualizado", description: "Periférico actualizado" });
       setIsOpen(false);
       setEditingItem(null);
