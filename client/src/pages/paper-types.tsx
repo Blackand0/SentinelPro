@@ -50,6 +50,7 @@ const paperTypeSchema = z.object({
   weight: z.string().min(1, "El gramaje es requerido"),
   color: z.string().default("white"),
   pricePerSheet: z.string().optional(),
+  stock: z.string().optional(),
 });
 
 type PaperTypeFormData = z.infer<typeof paperTypeSchema>;
@@ -92,6 +93,7 @@ export default function PaperTypesPage() {
       weight: "75",
       color: "white",
       pricePerSheet: "",
+      stock: "",
     },
   });
 
@@ -107,7 +109,7 @@ export default function PaperTypesPage() {
         body: JSON.stringify({
           ...data,
           weight: parseInt(data.weight),
-          stock: 0,
+          stock: data.stock ? parseInt(data.stock) : 0,
           pricePerSheet: data.pricePerSheet ? parseFloat(data.pricePerSheet) : null,
         }),
       });
@@ -239,6 +241,7 @@ export default function PaperTypesPage() {
       weight: type.weight.toString(),
       color: type.color,
       pricePerSheet: type.pricePerSheet ? type.pricePerSheet.toString() : "",
+      stock: type.stock ? type.stock.toString() : "",
     });
     setIsOpen(true);
   };
