@@ -79,7 +79,7 @@ export function AppSidebar() {
       title: "Insumos",
       url: "/paper-types",
       icon: Package,
-      roles: ["admin", "operator"],
+      roles: ["admin"],
     },
     {
       title: "Toner e Tinta",
@@ -91,7 +91,7 @@ export function AppSidebar() {
       title: "Periféricos",
       url: "/maintenance",
       icon: Wrench,
-      roles: ["admin", "operator"],
+      roles: ["admin"],
     },
     {
       title: "Consumo",
@@ -110,7 +110,7 @@ export function AppSidebar() {
   );
 
   const shouldShowManagement = user?.role === "admin" || user?.role === "super-admin";
-  const shouldShowInventory = user?.role === "admin" || user?.role === "operator";
+  const shouldShowInventory = user?.role === "admin";
 
   const getInitials = (name: string) => {
     return name
