@@ -464,6 +464,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
       }
 
+      console.log("Paper type request body:", req.body);
       const data = insertPaperTypeSchema.parse({
         ...req.body,
         companyId: req.user.companyId,
@@ -471,11 +472,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stock: parseInt(req.body.stock || "0"),
       });
       
+      console.log("Paper type parsed data:", data);
       const paperType = await storage.createPaperType(data);
       res.json(paperType);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).send(error.errors[0].message);
+        console.error("Paper type validation error:", error.errors);
+        return res.status(400).send(JSON.stringify(error.errors));
       }
       console.error("Create paper type error:", error);
       res.status(500).send("Failed to create paper type");
