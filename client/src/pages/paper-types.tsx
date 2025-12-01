@@ -326,9 +326,18 @@ export default function PaperTypesPage() {
                 </Select>
               </div>
 
-              <div>
-                <Label htmlFor="price">Precio ($)</Label>
-                <Input id="price" type="number" step="0.01" {...form.register("pricePerSheet")} placeholder="0.50" />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="price">Precio ($)</Label>
+                  <Input id="price" type="number" step="0.01" {...form.register("pricePerSheet")} placeholder="0.50" />
+                </div>
+                <div>
+                  <Label htmlFor="stock">Stock (Resmas)</Label>
+                  <Input id="stock" type="number" {...form.register("stock")} placeholder="0" />
+                  {form.formState.errors.stock && (
+                    <p className="text-red-500 text-sm">{form.formState.errors.stock.message}</p>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-3 justify-end">
