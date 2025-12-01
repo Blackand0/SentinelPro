@@ -689,7 +689,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).send("Registro de mantenimiento no encontrado");
       }
 
-      if (log.printer.companyId !== req.user.companyId) {
+      // Check company access - use printer's company if exists, otherwise use log's companyId
+      const logCompanyId = log.printer?.companyId || (log as any).companyId;
+      if (logCompanyId !== req.user.companyId) {
         return res.status(403).send("No puedes editar registros de otra empresa");
       }
 

@@ -253,6 +253,10 @@ export class PostgresStorage implements IStorage {
       `);
 
       await sql.unsafe(`
+        ALTER TABLE maintenance_logs ADD COLUMN IF NOT EXISTS company_id varchar;
+      `);
+
+      await sql.unsafe(`
         CREATE TABLE IF NOT EXISTS consumption_expenses (
           id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
           company_id varchar NOT NULL,
@@ -542,15 +546,14 @@ export class PostgresStorage implements IStorage {
   }
 
   async getAllMaintenanceLogs(companyId?: string): Promise<MaintenanceLogWithDetails[]> {
-    const logs = await db.select().from(maintenanceLogs).orderBy(desc(maintenanceLogs.createdAt));
+    const query = db.select().from(maintenanceLogs).orderBy(desc(maintenanceLogs.createdAt));
+    const logs = companyId 
+      ? await query.where(eq(maintenanceLogs.companyId, companyId))
+      : await query;
+    
     const result: MaintenanceLogWithDetails[] = [];
 
     for (const log of logs) {
-      const printer = await this.getPrinter(log.printerId);
-      if (!printer) continue;
-
-      if (companyId && printer.companyId !== companyId) continue;
-
       let technician: Pick<User, "id" | "fullName"> | undefined;
       if (log.technicianId) {
         const tech = await this.getUser(log.technicianId);
@@ -559,9 +562,18 @@ export class PostgresStorage implements IStorage {
         }
       }
 
+      // Optional printer info for non-peripheral logs
+      let printer: any = null;
+      if (log.printerId) {
+        const printerData = await this.getPrinter(log.printerId);
+        if (printerData) {
+          printer = { id: printerData.id, name: printerData.name, location: printerData.location, model: printerData.model };
+        }
+      }
+
       result.push({
         ...log,
-        printer: { id: printer.id, name: printer.name, location: printer.location, model: printer.model },
+        printer: printer,
         technician,
       });
     }

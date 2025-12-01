@@ -67,7 +67,8 @@ export const tonerInventory = pgTable("toner_inventory", {
 // Maintenance Logs table - NEW
 export const maintenanceLogs = pgTable("maintenance_logs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  printerId: varchar("printer_id").notNull(),
+  printerId: varchar("printer_id"),
+  companyId: varchar("company_id").notNull(),
   technicianId: varchar("technician_id"),
   maintenanceType: text("maintenance_type").notNull(),
   description: text("description").notNull(),
