@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Pencil, Trash2, AlertTriangle } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -197,7 +197,65 @@ export default function TonerInventoryPage() {
     }
   };
 
-  const lowStockCount = tonerList?.filter(t => (t.stock as number) <= (t.minStock as number)).length || 0;
+  const [adjustingToner, setAdjustingToner] = useState<TonerInventory | null>(null);
+  const [adjustmentType, setAdjustmentType] = useState<"add" | "remove">("add");
+  const [adjustmentQuantity, setAdjustmentQuantity] = useState(0);
+
+  const adjustStockMutation = useMutation({
+    mutationFn: async () => {
+      if (!adjustingToner) return;
+      const token = localStorage.getItem("authToken");
+      const newStock = adjustmentType === "add" 
+        ? (adjustingToner.stock as number) + adjustmentQuantity
+        : (adjustingToner.stock as number) - adjustmentQuantity;
+      
+      const res = await fetch(`/api/toner-inventory/${adjustingToner.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ...adjustingToner,
+          stock: newStock,
+        }),
+      });
+      if (!res.ok) throw new Error("Error al ajustar");
+      
+      // Register expense when removing stock
+      if (adjustmentType === "remove" && adjustingToner.pricePerUnit) {
+        const expenseAmount = parseFloat(adjustingToner.pricePerUnit as unknown as string) * adjustmentQuantity;
+        await fetch("/api/consumption-expenses", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            expenseType: "toner_removal",
+            amount: expenseAmount.toString(),
+            description: `Consumo de ${adjustingToner.name}: ${adjustmentQuantity} unidades`,
+          }),
+        }).catch(e => console.error("Error registering expense:", e));
+        
+        queryClient.invalidateQueries({ queryKey: ["/api/consumption"] });
+      }
+      
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/toner-inventory"] });
+      toast({ 
+        title: "Stock actualizado", 
+        description: `${adjustmentType === "add" ? "Agregadas" : "Removidas"} ${adjustmentQuantity} unidades` 
+      });
+      setAdjustingToner(null);
+      setAdjustmentQuantity(0);
+    },
+    onError: () => {
+      toast({ title: "Error", description: "No se pudo ajustar stock", variant: "destructive" });
+    },
+  });
 
   return (
     <div className="space-y-6">
@@ -271,10 +329,6 @@ export default function TonerInventoryPage() {
                 <Input id="stock" type="number" {...form.register("stock")} placeholder="0" />
               </div>
 
-              <div>
-                <Label htmlFor="minStock">Stock Mínimo (Alerta)</Label>
-                <Input id="minStock" type="number" {...form.register("minStock")} placeholder="5" />
-              </div>
 
               <div>
                 <Label htmlFor="pricePerUnit">Precio Unitario</Label>
@@ -297,17 +351,6 @@ export default function TonerInventoryPage() {
         </Dialog>
       </div>
 
-      {lowStockCount > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-orange-900">
-              <AlertTriangle className="w-5 h-5" />
-              <span>{lowStockCount} item(s) con stock bajo</span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {isLoading ? (
         <Card>
           <CardContent className="p-8 text-center">Cargando...</CardContent>
@@ -327,21 +370,13 @@ export default function TonerInventoryPage() {
                     <TableHead>Modelo</TableHead>
                     <TableHead>Color</TableHead>
                     <TableHead className="text-right">Stock</TableHead>
-                    <TableHead className="text-right">Mínimo</TableHead>
                     <TableHead className="text-right">Precio</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {tonerList?.map((toner) => (
-                    <TableRow
-                      key={toner.id}
-                      className={
-                        (toner.stock as number) <= (toner.minStock as number)
-                          ? "bg-red-50"
-                          : ""
-                      }
-                    >
+                    <TableRow key={toner.id}>
                       <TableCell className="font-medium">{toner.name}</TableCell>
                       <TableCell>{toner.brand}</TableCell>
                       <TableCell>{toner.model}</TableCell>
@@ -351,17 +386,32 @@ export default function TonerInventoryPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span
-                          className={
-                            (toner.stock as number) <= (toner.minStock as number)
-                              ? "font-bold text-red-600"
-                              : ""
-                          }
-                        >
-                          {toner.stock}
-                        </span>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setAdjustingToner(toner);
+                              setAdjustmentType("remove");
+                            }}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            ↓
+                          </Button>
+                          <span className="w-8 text-center">{toner.stock}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setAdjustingToner(toner);
+                              setAdjustmentType("add");
+                            }}
+                            className="text-green-500 hover:text-green-700"
+                          >
+                            ↑
+                          </Button>
+                        </div>
                       </TableCell>
-                      <TableCell className="text-right">{toner.minStock}</TableCell>
                       <TableCell className="text-right">
                         ${parseFloat(toner.pricePerUnit?.toString() || "0").toFixed(2)}
                       </TableCell>
@@ -390,6 +440,49 @@ export default function TonerInventoryPage() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {adjustingToner && (
+        <Dialog open={!!adjustingToner} onOpenChange={() => setAdjustingToner(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {adjustmentType === "add" ? "Agregar Stock" : "Remover Stock"}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label>Producto: {adjustingToner.name}</Label>
+              </div>
+              <div>
+                <Label>Stock Actual: {adjustingToner.stock}</Label>
+              </div>
+              <div>
+                <Label htmlFor="quantity">Cantidad</Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  value={adjustmentQuantity}
+                  onChange={(e) => setAdjustmentQuantity(parseInt(e.target.value) || 0)}
+                  placeholder="0"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setAdjustingToner(null)}>
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={() => adjustStockMutation.mutate()}
+                  disabled={adjustStockMutation.isPending || adjustmentQuantity <= 0}
+                  className={adjustmentType === "add" ? "bg-green-600" : "bg-red-600"}
+                >
+                  Confirmar
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       <AlertDialog open={!!deletingToner} onOpenChange={() => setDeletingToner(null)}>

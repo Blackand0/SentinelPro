@@ -252,8 +252,6 @@ export default function PaperTypesPage() {
     }
   };
 
-  const lowStockItems = paperTypes?.filter(t => (t.stock as number) <= 10) || [];
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -345,16 +343,6 @@ export default function PaperTypesPage() {
           </DialogContent>
         </Dialog>
       </div>
-
-      {lowStockItems.length > 0 && (
-        <Card className="border-orange-200 bg-orange-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 text-orange-900 font-semibold">
-              Advertencia: {lowStockItems.length} insumo(s) con stock bajo (≤10 unidades)
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {isLoading ? (
         <Card>
