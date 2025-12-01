@@ -67,12 +67,6 @@ export function AppSidebar() {
       roles: ["admin", "super-admin"],
     },
     {
-      title: "Departamentos",
-      url: "/departments",
-      icon: Building,
-      roles: ["admin"],
-    },
-    {
       title: "Impresoras",
       url: "/printers",
       icon: Settings,
