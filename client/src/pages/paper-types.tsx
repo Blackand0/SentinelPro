@@ -110,7 +110,6 @@ export default function PaperTypesPage() {
           ...data,
           weight: parseInt(data.weight),
           stock: data.stock ? parseInt(data.stock) : 0,
-          pricePerSheet: data.pricePerSheet ? parseFloat(data.pricePerSheet) : null,
         }),
       });
       if (!res.ok) throw new Error("Error al crear tipo");
@@ -139,7 +138,6 @@ export default function PaperTypesPage() {
         body: JSON.stringify({
           ...data,
           weight: parseInt(data.weight),
-          pricePerSheet: data.pricePerSheet ? parseFloat(data.pricePerSheet) : null,
         }),
       });
       if (!res.ok) throw new Error("Error al actualizar");
