@@ -14,7 +14,6 @@ import {
   insertPrinterSchema,
   insertPrintJobSchema,
   insertCompanySchema,
-  insertDepartmentSchema,
   insertPaperTypeSchema,
   insertTonerInventorySchema,
   insertMaintenanceLogSchema,
@@ -22,7 +21,6 @@ import {
   users,
   printers,
   printJobs,
-  departments,
   paperTypes,
   tonerInventory,
   maintenanceLogs,
@@ -350,93 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // DEPARTMENTS CRUD
-  app.get("/api/departments", requireAuth, async (req, res) => {
-    try {
-      let companyId: string | undefined;
-      
-      if (req.user.role === "super-admin") {
-        companyId = undefined;
-      } else {
-        if (!req.user.companyId) {
-          return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
-        }
-        companyId = req.user.companyId;
-      }
-      
-      const depts = await storage.getAllDepartments(companyId);
-      res.json(depts);
-    } catch (error) {
-      console.error("Get departments error:", error);
-      res.status(500).send("Failed to fetch departments");
-    }
-  });
-
-  app.post("/api/departments", requireAuth, requireRole(["admin"]), async (req, res) => {
-    try {
-      if (!req.user.companyId) {
-        return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
-      }
-
-      const data = insertDepartmentSchema.parse({
-        ...req.body,
-        companyId: req.user.companyId,
-      });
-      
-      const dept = await storage.createDepartment(data);
-      res.json(dept);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).send(error.errors[0].message);
-      }
-      console.error("Create department error:", error);
-      res.status(500).send("Failed to create department");
-    }
-  });
-
-  app.put("/api/departments/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
-    try {
-      const dept = await storage.getDepartment(req.params.id);
-      if (!dept) {
-        return res.status(404).send("Departamento no encontrado");
-      }
-
-      if (dept.companyId !== req.user.companyId) {
-        return res.status(403).send("No puedes editar departamentos de otra empresa");
-      }
-
-      const data = insertDepartmentSchema.partial().parse(req.body);
-      const updatedDept = await storage.updateDepartment(req.params.id, data);
-      res.json(updatedDept);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).send(error.errors[0].message);
-      }
-      console.error("Update department error:", error);
-      res.status(500).send("Failed to update department");
-    }
-  });
-
-  app.delete("/api/departments/:id", requireAuth, requireRole(["admin"]), async (req, res) => {
-    try {
-      const dept = await storage.getDepartment(req.params.id);
-      if (!dept) {
-        return res.status(404).send("Departamento no encontrado");
-      }
-
-      if (dept.companyId !== req.user.companyId) {
-        return res.status(403).send("No puedes eliminar departamentos de otra empresa");
-      }
-
-      await storage.deleteDepartment(req.params.id);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Delete department error:", error);
-      res.status(500).send("Failed to delete department");
-    }
-  });
-
-  // PAPER TYPES CRUD
+// PAPER TYPES CRUD
   app.get("/api/paper-types", requireAuth, async (req, res) => {
     try {
       let companyId: string | undefined;
@@ -886,7 +798,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await sql`DELETE FROM paper_types WHERE company_id = ${req.params.id}`;
       await db.delete(users).where(eq(users.companyId, req.params.id));
       await db.delete(printers).where(eq(printers.companyId, req.params.id));
-      await db.delete(departments).where(eq(departments.companyId, req.params.id));
       
       await storage.deleteCompany(req.params.id);
       res.json({ success: true });

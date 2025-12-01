@@ -3,7 +3,7 @@ import { eq, and, inArray, desc } from "drizzle-orm";
 import postgres from "postgres";
 import { 
   users, printers, printJobs, companies, 
-  departments, paperTypes, tonerInventory, maintenanceLogs, alerts, consumptionExpenses
+  paperTypes, tonerInventory, maintenanceLogs, alerts, consumptionExpenses
 } from "@shared/schema";
 import type {
   User,
@@ -17,8 +17,6 @@ import type {
   ConsumptionStats,
   Company,
   InsertCompany,
-  Department,
-  InsertDepartment,
   PaperType,
   InsertPaperType,
   TonerInventory,
@@ -56,12 +54,6 @@ export interface IStorage {
   createCompany(company: InsertCompany): Promise<Company>;
   deleteCompany(id: string): Promise<void>;
   updateCompanyAdmin(id: string, adminId: string | null): Promise<Company | undefined>;
-
-  getDepartment(id: string): Promise<Department | undefined>;
-  getAllDepartments(companyId?: string): Promise<Department[]>;
-  createDepartment(department: InsertDepartment): Promise<Department>;
-  updateDepartment(id: string, department: Partial<InsertDepartment>): Promise<Department | undefined>;
-  deleteDepartment(id: string): Promise<void>;
 
   getPaperType(id: string): Promise<PaperType | undefined>;
   getAllPaperTypes(companyId?: string): Promise<PaperType[]>;
@@ -122,17 +114,6 @@ export class PostgresStorage implements IStorage {
         );
       `);
 
-      await sql.unsafe(`
-        CREATE TABLE IF NOT EXISTS departments (
-          id varchar PRIMARY KEY DEFAULT gen_random_uuid(),
-          name text NOT NULL,
-          description text,
-          company_id varchar NOT NULL,
-          manager_id varchar,
-          budget decimal(10,2),
-          created_at timestamp NOT NULL DEFAULT now()
-        );
-      `);
 
       await sql.unsafe(`
         CREATE TABLE IF NOT EXISTS users (
@@ -301,16 +282,6 @@ export class PostgresStorage implements IStorage {
           }).onConflictDoNothing();
         }
 
-        const deptExists = await this.getDepartment("00000000-0000-0000-0000-000000000020");
-        if (!deptExists) {
-          await db.insert(departments).values({
-            id: "00000000-0000-0000-0000-000000000020",
-            name: "Departamento General",
-            description: "Departamento principal de la empresa",
-            companyId: "00000000-0000-0000-0000-000000000010",
-          }).onConflictDoNothing();
-        }
-        
         await db.insert(users).values({
           id: "00000000-0000-0000-0000-000000000001",
           username: "sentinelpro",
@@ -332,7 +303,6 @@ export class PostgresStorage implements IStorage {
             fullName: "Administrador",
             role: "admin",
             companyId: "00000000-0000-0000-0000-000000000010",
-            departmentId: "00000000-0000-0000-0000-000000000020",
           }).onConflictDoNothing();
         }
 
@@ -439,33 +409,7 @@ export class PostgresStorage implements IStorage {
     await db.delete(printers).where(eq(printers.id, id));
   }
 
-  async getDepartment(id: string): Promise<Department | undefined> {
-    const result = await db.select().from(departments).where(eq(departments.id, id));
-    return result[0];
-  }
-
-  async getAllDepartments(companyId?: string): Promise<Department[]> {
-    if (companyId) {
-      return db.select().from(departments).where(eq(departments.companyId, companyId)).orderBy(departments.createdAt);
-    }
-    return db.select().from(departments).orderBy(departments.createdAt);
-  }
-
-  async createDepartment(insertDepartment: InsertDepartment): Promise<Department> {
-    const result = await db.insert(departments).values(insertDepartment).returning();
-    return result[0];
-  }
-
-  async updateDepartment(id: string, data: Partial<InsertDepartment>): Promise<Department | undefined> {
-    const result = await db.update(departments).set(data).where(eq(departments.id, id)).returning();
-    return result[0];
-  }
-
-  async deleteDepartment(id: string): Promise<void> {
-    await db.delete(departments).where(eq(departments.id, id));
-  }
-
-  async getPaperType(id: string): Promise<PaperType | undefined> {
+async getPaperType(id: string): Promise<PaperType | undefined> {
     const result = await db.select().from(paperTypes).where(eq(paperTypes.id, id));
     return result[0];
   }

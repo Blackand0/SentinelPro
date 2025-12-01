@@ -21,18 +21,6 @@ export const users = pgTable("users", {
   fullName: text("full_name").notNull(),
   role: text("role").notNull().default("operator"),
   companyId: varchar("company_id"),
-  departmentId: varchar("department_id"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
-
-// Departments table - NEW
-export const departments = pgTable("departments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  name: text("name").notNull(),
-  description: text("description"),
-  companyId: varchar("company_id").notNull(),
-  managerId: varchar("manager_id"),
-  budget: decimal("budget", { precision: 10, scale: 2 }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -127,7 +115,6 @@ export const printers = pgTable("printers", {
   model: text("model").notNull(),
   ipAddress: text("ip_address"),
   companyId: varchar("company_id"),
-  departmentId: varchar("department_id"),
   status: text("status").notNull().default("active"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
@@ -164,19 +151,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
 }).extend({
   role: z.enum(["super-admin", "admin", "operator", "viewer"]).default("operator"),
   companyId: z.string().optional(),
-  departmentId: z.string().optional(),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
-});
-
-export const insertDepartmentSchema = createInsertSchema(departments).omit({
-  id: true,
-  createdAt: true,
-}).extend({
-  name: z.string().min(1, "El nombre es requerido"),
-  description: z.string().optional(),
-  companyId: z.string(),
-  managerId: z.string().optional(),
-  budget: z.string().optional(),
 });
 
 export const insertPaperTypeSchema = createInsertSchema(paperTypes).omit({
@@ -240,7 +215,6 @@ export const insertPrinterSchema = createInsertSchema(printers).omit({
 }).extend({
   status: z.enum(["active", "inactive", "maintenance"]).default("active"),
   companyId: z.string().optional(),
-  departmentId: z.string().optional(),
 });
 
 export const insertPrintJobSchema = createInsertSchema(printJobs).omit({
