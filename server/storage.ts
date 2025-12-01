@@ -92,8 +92,20 @@ export interface IStorage {
   createConsumptionExpense(expense: any): Promise<any>;
 }
 
-export const sql = postgres(process.env.DATABASE_URL!, {
-  ssl: "require",
+// Use Replit PostgreSQL if available, otherwise use DATABASE_URL
+const getDatabaseUrl = () => {
+  if (process.env.PGHOST === "helium" && process.env.PGUSER && process.env.PGPASSWORD) {
+    console.log("Using Replit PostgreSQL");
+    return `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
+  }
+  console.log("Using DATABASE_URL");
+  return process.env.DATABASE_URL!;
+};
+
+const isSslRequired = () => process.env.PGHOST !== "helium";
+
+export const sql = postgres(getDatabaseUrl(), {
+  ssl: isSslRequired() ? "require" : false,
 });
 export const db = drizzle(sql);
 
