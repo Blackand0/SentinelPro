@@ -107,7 +107,7 @@ export default function PeripheralsPage() {
           printerId: "", // Empty for peripherals
           maintenanceType: data.category === "purchase" ? "purchase" : "maintenance",
           description: `${data.name}: ${data.description}`,
-          cost: parseFloat(data.cost),
+          cost: data.cost,
           status: "completed",
           scheduledDate: data.date,
           notes: data.notes,
@@ -128,7 +128,7 @@ export default function PeripheralsPage() {
         },
         body: JSON.stringify({
           expenseType: "peripheral",
-          amount: parseFloat(data.cost),
+          amount: data.cost,
           description: `${data.category === "purchase" ? "Compra" : "Mantenimiento"}: ${data.name}`,
         }),
       });
@@ -164,7 +164,7 @@ export default function PeripheralsPage() {
           printerId: editingItem?.printerId || "",
           maintenanceType: data.category === "purchase" ? "purchase" : "maintenance",
           description: `${data.name}: ${data.description}`,
-          cost: parseFloat(data.cost),
+          cost: data.cost,
           status: "completed",
           scheduledDate: data.date,
           notes: data.notes,
