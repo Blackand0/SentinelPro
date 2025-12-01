@@ -826,7 +826,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const data = insertConsumptionExpenseSchema.parse({
         ...req.body,
         companyId: req.user.companyId,
-        date: req.body.date || new Date(),
+        date: req.body.date || new Date().toISOString(),
       });
       
       const expense = await storage.createConsumptionExpense(data);
