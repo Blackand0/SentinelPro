@@ -648,12 +648,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).send("Error: Tu usuario no tiene una empresa asignada");
       }
 
-      const printer = await storage.getPrinter(req.body.printerId);
-      if (!printer || printer.companyId !== req.user.companyId) {
-        return res.status(403).send("Impresora no valida");
+      // printerId is optional - allow periféricos without printer
+      if (req.body.printerId && req.body.printerId !== "") {
+        const printer = await storage.getPrinter(req.body.printerId);
+        if (!printer || printer.companyId !== req.user.companyId) {
+          return res.status(403).send("Impresora no valida");
+        }
       }
 
-      const data = insertMaintenanceLogSchema.parse(req.body);
+      const data = insertMaintenanceLogSchema.parse({
+        ...req.body,
+        companyId: req.user.companyId,
+      });
       
       const log = await storage.createMaintenanceLog(data);
       res.json(log);
