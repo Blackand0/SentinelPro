@@ -93,14 +93,27 @@ export interface IStorage {
 }
 
 const getDatabaseUrl = () => {
+  // For local development: use Replit PostgreSQL if available
+  if (process.env.PGHOST === "helium" && process.env.PGUSER && process.env.PGPASSWORD) {
+    console.log("Using Replit PostgreSQL (development)");
+    return `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD}@${process.env.PGHOST}:${process.env.PGPORT}/${process.env.PGDATABASE}`;
+  }
+  
+  // For production: use external DATABASE_URL
   if (!process.env.DATABASE_URL) {
     throw new Error("DATABASE_URL environment variable is required");
   }
+  console.log("Using DATABASE_URL (production)");
   return process.env.DATABASE_URL;
 };
 
+const isSslRequired = () => {
+  // SSL required only for external databases (Render, etc)
+  return process.env.PGHOST !== "helium";
+};
+
 export const sql = postgres(getDatabaseUrl(), {
-  ssl: "require",
+  ssl: isSslRequired() ? "require" : false,
 });
 export const db = drizzle(sql);
 
