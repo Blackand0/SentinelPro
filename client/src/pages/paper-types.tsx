@@ -279,7 +279,7 @@ export default function PaperTypesPage() {
             </DialogHeader>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div>
-                <Label htmlFor="name">Nombre (Resmas, Tintas, etc)</Label>
+                <Label htmlFor="name">Nombre</Label>
                 <Input id="name" {...form.register("name")} placeholder="Ej: Resmas Blancas A4" />
               </div>
 
