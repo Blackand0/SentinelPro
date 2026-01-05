@@ -208,6 +208,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/auth/me", requireAuth, clearSecurityContext, (req, res) => {
+    console.log(`✅ /api/auth/me success for user: ${req.user.username}`);
     res.json(req.user);
   });
 

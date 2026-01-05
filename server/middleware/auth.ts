@@ -68,8 +68,11 @@ export async function requireAuth(
 
     const user = await storage.getUser(decoded.userId);
     if (!user) {
+      console.log(`❌ User ${decoded.userId} not found in database`);
       return res.status(401).send("Unauthorized");
     }
+
+    console.log(`✅ User found in requireAuth: ${user.username}, role: ${user.role}`);
     const { password, ...userWithoutPassword } = user;
     req.user = userWithoutPassword;
 
