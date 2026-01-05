@@ -120,13 +120,17 @@ CREATE POLICY "System can create audit logs" ON audit_logs
 
 -- Función para establecer contexto de seguridad
 CREATE OR REPLACE FUNCTION set_security_context(
-  p_company_id varchar,
+  p_company_id varchar DEFAULT NULL,
   p_user_role varchar DEFAULT 'viewer'
 ) RETURNS void AS $$
 BEGIN
   -- Establecer variables de sesión para RLS
-  PERFORM set_config('app.current_company_id', p_company_id, false);
+  PERFORM set_config('app.current_company_id', COALESCE(p_company_id, ''), false);
   PERFORM set_config('app.user_role', p_user_role, false);
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Log error but don't fail
+    RAISE WARNING 'Error setting security context: %', SQLERRM;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -136,6 +140,10 @@ BEGIN
   -- Limpiar variables de sesión
   PERFORM set_config('app.current_company_id', '', false);
   PERFORM set_config('app.user_role', '', false);
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Log error but don't fail
+    RAISE WARNING 'Error clearing security context: %', SQLERRM;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
