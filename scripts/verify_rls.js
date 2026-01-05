@@ -11,8 +11,6 @@ const sql = postgres(DATABASE_URL, { ssl: 'require' });
 async function verifyRLS() {
   try {
     console.log('🔍 Verificando configuración RLS...\n');
-
-    // Verificar que RLS esté habilitado en todas las tablas
     const tables = [
       'companies',
       'users',

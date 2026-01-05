@@ -64,26 +64,18 @@ export async function requireAuth(
 
   try {
     const decoded = jwt.verify(token, secret) as { userId: string };
-    console.log(`🔐 JWT decoded for userId: ${decoded.userId}`);
-
-    // Primero configurar un contexto básico para poder consultar la tabla users
     await sql`SELECT set_security_context(null, 'super-admin')`;
 
     const user = await storage.getUser(decoded.userId);
     if (!user) {
-      console.log(`❌ User ${decoded.userId} not found in database`);
       return res.status(401).send("Unauthorized");
     }
-
-    console.log(`✅ User found: ${user.username}, role: ${user.role}`);
     const { password, ...userWithoutPassword } = user;
     req.user = userWithoutPassword;
 
-    // Configurar contexto RLS completo para PostgreSQL
     try {
       await sql`SELECT set_security_context(${user.companyId || null}, ${user.role})`;
 
-      // Configurar variables adicionales para auditoría
       await sql`
         SELECT set_config('app.current_user_id', ${user.id}, false),
                set_config('app.client_ip', ${req.ip || req.connection.remoteAddress || ''}, false),
@@ -91,7 +83,6 @@ export async function requireAuth(
       `;
     } catch (rlsError) {
       console.error('Error setting RLS context:', rlsError);
-      // No fallar la autenticación por error de RLS, pero loggear el problema
     }
 
     next();
@@ -235,9 +226,7 @@ export function validateMultiTenantIntegrity() {
   };
 }
 
-// Middleware para limpiar contexto RLS después de cada respuesta
 export function clearSecurityContext(req: Request, res: Response, next: NextFunction) {
-  // Limpiar contexto después de que se complete la respuesta
   res.on('finish', async () => {
     try {
       await sql.unsafe(`SELECT clear_security_context()`);

@@ -873,10 +873,9 @@ async getPaperType(id: string): Promise<PaperType | undefined> {
     const result = await db.insert(companies).values(insertCompany).returning();
     const createdCompany = result[0];
 
-    // Registrar auditoría para creación de compañías (operación crítica del sistema)
     await this.createAuditLogEntry(
-      createdCompany.id, // Usar el ID de la compañía como companyId
-      "system", // Usuario del sistema
+      createdCompany.id,
+      "system",
       "CREATE",
       "companies",
       createdCompany.id,
@@ -1284,7 +1283,6 @@ async getPaperType(id: string): Promise<PaperType | undefined> {
           if (predictedDailyConsumption > 0) {
             const daysRemaining = Math.floor(paperType.stock / predictedDailyConsumption);
 
-            // Calcular varianza para determinar confiabilidad
             const mean = dailyConsumptions.reduce((a, b) => a + b, 0) / dailyConsumptions.length;
             const variance = dailyConsumptions.reduce((sum, value) => sum + Math.pow(value - mean, 2), 0) / dailyConsumptions.length;
             const confidence = variance < (mean * 0.5) ? "high" : variance < (mean * 1.0) ? "medium" : "low";
@@ -1388,7 +1386,6 @@ async getPaperType(id: string): Promise<PaperType | undefined> {
       const projections = await this.getSupplyProjections(companyId);
       const companiesToCheck = companyId ? [companyId] : [];
 
-      // Si no se especificó companyId, obtener todas las compañías
       if (!companyId) {
         const allCompanies = await this.getAllCompanies();
         companiesToCheck.push(...allCompanies.map(c => c.id));
