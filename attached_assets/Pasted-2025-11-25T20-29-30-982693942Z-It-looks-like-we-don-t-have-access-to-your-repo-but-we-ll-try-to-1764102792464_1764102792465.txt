@@ -1,0 +1,115 @@
+2025-11-25T20:29:30.982693942Z ==> It looks like we don't have access to your repo, but we'll try to clone it anyway.
+2025-11-25T20:29:30.982709032Z ==> Cloning from https://github.com/Blackand0/SentinelPro
+2025-11-25T20:29:31.573995206Z ==> Checking out commit 59197e0e4a8b9003e8038a2e45ed62b2faf40df1 in branch main
+2025-11-25T20:29:35.076650519Z ==> Using Node.js version 22.16.0 (default)
+2025-11-25T20:29:35.103836733Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2025-11-25T20:29:40.79068854Z ==> Running build command 'npm install; npm run build'...
+2025-11-25T20:29:54.797524064Z 
+2025-11-25T20:29:54.797553434Z added 507 packages, and audited 508 packages in 14s
+2025-11-25T20:29:54.797569425Z 
+2025-11-25T20:29:54.797598185Z 66 packages are looking for funding
+2025-11-25T20:29:54.797608775Z   run `npm fund` for details
+2025-11-25T20:29:54.819431943Z 
+2025-11-25T20:29:54.819453934Z 9 vulnerabilities (3 low, 5 moderate, 1 high)
+2025-11-25T20:29:54.819459604Z 
+2025-11-25T20:29:54.819465554Z To address issues that do not require attention, run:
+2025-11-25T20:29:54.819471114Z   npm audit fix
+2025-11-25T20:29:54.819476254Z 
+2025-11-25T20:29:54.819481964Z To address all issues (including breaking changes), run:
+2025-11-25T20:29:54.819488174Z   npm audit fix --force
+2025-11-25T20:29:54.819493075Z 
+2025-11-25T20:29:54.819499535Z Run `npm audit` for details.
+2025-11-25T20:29:55.067547778Z 
+2025-11-25T20:29:55.067577169Z > sentinel-pro@1.0.0 build
+2025-11-25T20:29:55.067583419Z > vite build && esbuild server/index-prod.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+2025-11-25T20:29:55.067591869Z 
+2025-11-25T20:29:55.276819641Z vite v5.4.20 building for production...
+2025-11-25T20:29:55.610164367Z transforming...
+2025-11-25T20:29:56.370990482Z 
+2025-11-25T20:29:56.371015903Z A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+2025-11-25T20:29:59.222871771Z ✓ 2151 modules transformed.
+2025-11-25T20:29:59.518168065Z rendering chunks...
+2025-11-25T20:29:59.531385268Z computing gzip size...
+2025-11-25T20:29:59.590291336Z ../dist/public/index.html                                             0.99 kB │ gzip:   0.54 kB
+2025-11-25T20:29:59.590437119Z ../dist/public/assets/modern_printer_icon_transparent-JedQNrFB.png  392.60 kB
+2025-11-25T20:29:59.590529051Z ../dist/public/assets/index-DY7gJBJo.css                             70.69 kB │ gzip:  11.47 kB
+2025-11-25T20:29:59.590693835Z ../dist/public/assets/index-xcK6sPDM.js                             572.27 kB │ gzip: 169.45 kB
+2025-11-25T20:29:59.590777077Z 
+2025-11-25T20:29:59.590784297Z (!) Some chunks are larger than 500 kB after minification. Consider:
+2025-11-25T20:29:59.590789068Z - Using dynamic import() to code-split the application
+2025-11-25T20:29:59.590793657Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2025-11-25T20:29:59.590797998Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2025-11-25T20:29:59.591073084Z ✓ built in 4.01s
+2025-11-25T20:29:59.755802731Z 
+2025-11-25T20:29:59.755838792Z   dist/index.js  30.2kb
+2025-11-25T20:29:59.755841542Z 
+2025-11-25T20:29:59.755843922Z ⚡ Done in 5ms
+2025-11-25T20:30:03.203511642Z ==> Uploading build...
+2025-11-25T20:30:14.922661752Z ==> Uploaded in 6.5s. Compression took 5.3s
+2025-11-25T20:30:14.966643765Z ==> Build successful 🎉
+2025-11-25T20:30:25.086841925Z ==> Deploying...
+2025-11-25T20:31:12.172980804Z ==> Running 'npm run start'
+2025-11-25T20:31:13.468683619Z 
+2025-11-25T20:31:13.468706731Z > sentinel-pro@1.0.0 start
+2025-11-25T20:31:13.468711591Z > NODE_ENV=production node dist/index.js
+2025-11-25T20:31:13.468713641Z 
+2025-11-25T20:31:20.695680715Z {
+2025-11-25T20:31:20.695698066Z   severity_local: 'NOTICE',
+2025-11-25T20:31:20.695701646Z   severity: 'NOTICE',
+2025-11-25T20:31:20.695704036Z   code: '42P07',
+2025-11-25T20:31:20.695706997Z   message: 'relation "companies" already exists, skipping',
+2025-11-25T20:31:20.695709497Z   file: 'parse_utilcmd.c',
+2025-11-25T20:31:20.695711817Z   line: '208',
+2025-11-25T20:31:20.695714207Z   routine: 'transformCreateStmt'
+2025-11-25T20:31:20.695716868Z }
+2025-11-25T20:31:20.72396702Z {
+2025-11-25T20:31:20.724017603Z   severity_local: 'NOTICE',
+2025-11-25T20:31:20.724021273Z   severity: 'NOTICE',
+2025-11-25T20:31:20.724023553Z   code: '42P07',
+2025-11-25T20:31:20.724026424Z   message: 'relation "users" already exists, skipping',
+2025-11-25T20:31:20.724028794Z   file: 'parse_utilcmd.c',
+2025-11-25T20:31:20.724031074Z   line: '208',
+2025-11-25T20:31:20.724033224Z   routine: 'transformCreateStmt'
+2025-11-25T20:31:20.724035444Z }
+2025-11-25T20:31:21.071905261Z {
+2025-11-25T20:31:21.071921812Z   severity_local: 'NOTICE',
+2025-11-25T20:31:21.071926613Z   severity: 'NOTICE',
+2025-11-25T20:31:21.071930383Z   code: '42P07',
+2025-11-25T20:31:21.071934753Z   message: 'relation "printers" already exists, skipping',
+2025-11-25T20:31:21.071938354Z   file: 'parse_utilcmd.c',
+2025-11-25T20:31:21.071941954Z   line: '208',
+2025-11-25T20:31:21.071945514Z   routine: 'transformCreateStmt'
+2025-11-25T20:31:21.071948974Z }
+2025-11-25T20:31:21.099041734Z {
+2025-11-25T20:31:21.099060895Z   severity_local: 'NOTICE',
+2025-11-25T20:31:21.099066916Z   severity: 'NOTICE',
+2025-11-25T20:31:21.099071486Z   code: '42P07',
+2025-11-25T20:31:21.099076366Z   message: 'relation "print_jobs" already exists, skipping',
+2025-11-25T20:31:21.099080957Z   file: 'parse_utilcmd.c',
+2025-11-25T20:31:21.099085147Z   line: '208',
+2025-11-25T20:31:21.099089427Z   routine: 'transformCreateStmt'
+2025-11-25T20:31:21.099093638Z }
+2025-11-25T20:31:21.134377041Z {
+2025-11-25T20:31:21.134395732Z   severity_local: 'NOTICE',
+2025-11-25T20:31:21.134400822Z   severity: 'NOTICE',
+2025-11-25T20:31:21.134405133Z   code: '42P07',
+2025-11-25T20:31:21.134409843Z   message: 'relation "session" already exists, skipping',
+2025-11-25T20:31:21.134413763Z   file: 'parse_utilcmd.c',
+2025-11-25T20:31:21.134417664Z   line: '208',
+2025-11-25T20:31:21.134421984Z   routine: 'transformCreateStmt'
+2025-11-25T20:31:21.134426154Z }
+2025-11-25T20:31:21.134551323Z ✅ Database tables initialized
+2025-11-25T20:31:21.27686973Z 8:31:21 PM [express] serving on port 10000
+2025-11-25T20:31:22.663211592Z ==> Your service is live 🎉
+2025-11-25T20:31:22.697202809Z ==> 
+2025-11-25T20:31:22.727623157Z ==> ///////////////////////////////////////////////////////////
+2025-11-25T20:31:22.760730024Z ==> 
+2025-11-25T20:31:22.795416142Z ==> Available at your primary URL https://sentinelpro.onrender.com
+2025-11-25T20:31:22.826747429Z ==> 
+2025-11-25T20:31:22.865902976Z ==> ///////////////////////////////////////////////////////////
+2025-11-25T20:32:43.034592554Z 8:32:43 PM [express] GET /api/auth/me 401 in 2ms
+2025-11-25T20:32:47.875833856Z ✅ Login: User 00000000-0000-0000-0000-000000000001 → JWT Token generated
+2025-11-25T20:32:47.876536216Z Login error: TypeError: Cannot read properties of undefined (reading 'csrfToken')
+2025-11-25T20:32:47.876549317Z     at generateCsrfToken (file:///opt/render/project/src/dist/index.js:464:20)
+2025-11-25T20:32:47.876554817Z     at file:///opt/render/project/src/dist/index.js:593:7
+2025-11-25T20:32:47.962211108Z 8:32:47 PM [express] POST /api/auth/login 500 in 440ms

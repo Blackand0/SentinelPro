@@ -1,0 +1,74 @@
+==> It looks like we don't have access to your repo, but we'll try to clone it anyway.
+==> Cloning from https://github.com/Blackand0/SentinelPro
+==> Checking out commit 235b0004cf8dcfcf9ab35aef00ed7f100301a56b in branch main
+==> Using Node.js version 22.16.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'npm install; npm run build'...
+added 495 packages, and audited 496 packages in 10s
+66 packages are looking for funding
+  run `npm fund` for details
+9 vulnerabilities (3 low, 5 moderate, 1 high)
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+> sentinel-pro@1.0.0 build
+> vite build && esbuild server/index-prod.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+vite v5.4.20 building for production...
+transforming...
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+✓ 2151 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                                             0.99 kB │ gzip:   0.54 kB
+../dist/public/assets/modern_printer_icon_transparent-JedQNrFB.png  392.60 kB
+../dist/public/assets/index-DY7gJBJo.css                             70.69 kB │ gzip:  11.47 kB
+../dist/public/assets/index-BYZd-FKu.js                             572.32 kB │ gzip: 169.50 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.78s
+  dist/index.js  33.2kb
+⚡ Done in 6ms
+==> Uploading build...
+==> Uploaded in 6.2s. Compression took 4.0s
+==> Build successful 🎉
+==> Deploying...
+==> Running 'npm run start'
+> sentinel-pro@1.0.0 start
+> NODE_ENV=production node dist/index.js
+/opt/render/project/src/node_modules/express-session/index.js:172
+  store.on('disconnect', function ondisconnect() {
+        ^
+TypeError: store.on is not a function
+    at session (/opt/render/project/src/node_modules/express-session/index.js:172:9)
+    at registerRoutes (file:///opt/render/project/src/dist/index.js:600:5)
+    at runApp (file:///opt/render/project/src/dist/index.js:963:24)
+    at file:///opt/render/project/src/dist/index.js:995:9
+    at file:///opt/render/project/src/dist/index.js:996:3
+✅ Using PostgreSQL Session Store
+    at ModuleJob.run (node:internal/modules/esm/module_job:274:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+Node.js v22.16.0
+==> Exited with status 1
+==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+==> Running 'npm run start'
+> sentinel-pro@1.0.0 start
+> NODE_ENV=production node dist/index.js
+✅ Using PostgreSQL Session Store
+/opt/render/project/src/node_modules/express-session/index.js:172
+  store.on('disconnect', function ondisconnect() {
+        ^
+TypeError: store.on is not a function
+    at session (/opt/render/project/src/node_modules/express-session/index.js:172:9)
+    at registerRoutes (file:///opt/render/project/src/dist/index.js:600:5)
+    at runApp (file:///opt/render/project/src/dist/index.js:963:24)
+    at file:///opt/render/project/src/dist/index.js:995:9
+    at file:///opt/render/project/src/dist/index.js:996:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:274:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+Node.js v22.16.0

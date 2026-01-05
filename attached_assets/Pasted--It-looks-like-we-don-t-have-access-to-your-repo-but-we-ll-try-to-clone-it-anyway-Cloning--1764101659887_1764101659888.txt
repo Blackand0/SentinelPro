@@ -1,0 +1,129 @@
+==> It looks like we don't have access to your repo, but we'll try to clone it anyway.
+==> Cloning from https://github.com/Blackand0/SentinelPro
+==> Checking out commit 4da04e95c3dbfb7427eb38c6f953a4f72b5adc84 in branch main
+==> Using Node.js version 22.16.0 (default)
+==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+==> Running build command 'npm install; npm run build'...
+added 495 packages, and audited 496 packages in 8s
+66 packages are looking for funding
+  run `npm fund` for details
+9 vulnerabilities (3 low, 5 moderate, 1 high)
+To address issues that do not require attention, run:
+  npm audit fix
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+Run `npm audit` for details.
+> sentinel-pro@1.0.0 build
+> vite build && esbuild server/index-prod.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+vite v5.4.20 building for production...
+transforming...
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+✓ 2151 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                                             0.99 kB │ gzip:   0.54 kB
+../dist/public/assets/modern_printer_icon_transparent-JedQNrFB.png  392.60 kB
+../dist/public/assets/index-DY7gJBJo.css                             70.69 kB │ gzip:  11.47 kB
+../dist/public/assets/index-hukhYJZo.js                             572.37 kB │ gzip: 169.51 kB
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.48s
+  dist/index.js  35.2kb
+⚡ Done in 5ms
+==> Uploading build...
+==> Uploaded in 5.4s. Compression took 3.0s
+==> Build successful 🎉
+==> Deploying...
+==> Running 'npm run start'
+> sentinel-pro@1.0.0 start
+> NODE_ENV=production node dist/index.js
+✅ Using PostgreSQL Session Store
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "session" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '208',
+  routine: 'transformCreateStmt'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "companies" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '208',
+  routine: 'transformCreateStmt'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "session_expire_idx" already exists, skipping',
+  file: 'index.c',
+  line: '891',
+  routine: 'index_create'
+}
+✅ Session table ensured
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "users" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '208',
+  routine: 'transformCreateStmt'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "printers" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '208',
+  routine: 'transformCreateStmt'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "print_jobs" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '208',
+  routine: 'transformCreateStmt'
+}
+{
+  severity_local: 'NOTICE',
+  severity: 'NOTICE',
+  code: '42P07',
+  message: 'relation "session" already exists, skipping',
+  file: 'parse_utilcmd.c',
+  line: '208',
+  routine: 'transformCreateStmt'
+}
+✅ Database tables initialized
+8:13:44 PM [express] serving on port 10000
+✅ Session saved: yqe9YZI1llBLBYxN7K4uZdu_0kZqje9j
+==> Your service is live 🎉
+==> 
+==> ///////////////////////////////////////////////////////////
+==> 
+==> Available at your primary URL https://sentinelpro.onrender.com
+==> 
+==> ///////////////////////////////////////////////////////////
+✅ Session saved: zhP8EJFfDagPtNy-o-fIsi7nRxX7dY_r
+✅ Session saved: w-4e0CN_4yAzh-IpFgNBqHL3XjAJBnoq
+✅ Session saved: A9VV_1SlOPrDuueXNOIuQjIJ4RyQeR0q
+✅ Session saved: LNdgNj7Z2yGBThkEpm4rqmSz-4vd5F4p
+✅ Session saved: r7VJXXswtDoOIqDRkuz_scQDHmWRoG3A
+8:13:59 PM [express] GET /api/auth/me 401 in 37ms
+✅ Session saved: SnAIgaZj1pwUpwQ8ewj6H-Dut1A_40Qy
+✅ Session regenerated (new): vbTlc4zHpTcdVLUhH5eQnvGKp1bGRwN9
+✅ Login: User 00000000-0000-0000-0000-000000000001 → Session vbTlc4zHpTcdVLUhH5eQnvGKp1bGRwN9
+✅ Session saved: vbTlc4zHpTcdVLUhH5eQnvGKp1bGRwN9
+8:14:04 PM [express] POST /api/auth/login 200 in 479ms :: {"ok":true}
+✅ Session saved: V_uf5Ma4tdKaIL3KtXShVv0_q0iSujVF
+8:14:04 PM [express] GET /api/auth/me 401 in 32ms

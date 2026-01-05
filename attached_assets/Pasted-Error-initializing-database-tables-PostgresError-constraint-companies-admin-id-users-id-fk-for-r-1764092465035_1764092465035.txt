@@ -1,0 +1,59 @@
+Error initializing database tables: PostgresError: constraint "companies_admin_id_users_id_fk" for relation "companies" already exists
+    at ErrorResponse (file:///opt/render/project/src/node_modules/postgres/src/connection.js:794:26)
+    at handle (file:///opt/render/project/src/node_modules/postgres/src/connection.js:480:6)
+    at TLSSocket.data (file:///opt/render/project/src/node_modules/postgres/src/connection.js:315:9)
+    at TLSSocket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:189:23) {
+  severity_local: 'ERROR',
+  severity: 'ERROR',
+  code: '42710',
+  file: 'tablecmds.c',
+  line: '9819',
+  routine: 'ATExecAddConstraint'
+}
+5:39:50 PM [express] serving on port 10000
+==> Your service is live 🎉
+==> 
+==> ///////////////////////////////////////////////////////////
+==> 
+==> Available at your primary URL https://sentinelpro.onrender.com
+==> 
+==> ///////////////////////////////////////////////////////////
+5:39:59 PM [express] GET /api/auth/me 401 in 2ms
+Login error: error: SSL/TLS required
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async PGStore._asyncQuery (/opt/render/project/src/node_modules/connect-pg-simple/index.js:322:21) {
+  length: 37,
+  severity: 'FATAL',
+  code: '28000',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: undefined,
+  line: undefined,
+  routine: undefined
+}
+5:40:04 PM [express] POST /api/auth/login 500 in 514ms
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at ServerResponse.setHeader (node:_http_outgoing:699:11)
+    at ServerResponse.header (/opt/render/project/src/node_modules/express/lib/response.js:794:10)
+    at ServerResponse.send (/opt/render/project/src/node_modules/express/lib/response.js:174:12)
+    at ServerResponse.json (/opt/render/project/src/node_modules/express/lib/response.js:278:15)
+    at res.json (file:///opt/render/project/src/dist/index.js:848:28)
+    at file:///opt/render/project/src/dist/index.js:870:24
+    at Layer.handle_error (/opt/render/project/src/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/opt/render/project/src/node_modules/express/lib/router/index.js:326:13)
+    at /opt/render/project/src/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/opt/render/project/src/node_modules/express/lib/router/index.js:346:12)

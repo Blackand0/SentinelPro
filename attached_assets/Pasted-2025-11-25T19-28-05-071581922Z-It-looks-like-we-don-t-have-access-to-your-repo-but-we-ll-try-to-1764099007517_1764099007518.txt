@@ -1,0 +1,136 @@
+2025-11-25T19:28:05.071581922Z ==> It looks like we don't have access to your repo, but we'll try to clone it anyway.
+2025-11-25T19:28:05.071601432Z ==> Cloning from https://github.com/Blackand0/SentinelPro
+2025-11-25T19:28:05.624556681Z ==> Checking out commit 5239f67a9be4fffde46a93dad491b5bf1473fab8 in branch main
+2025-11-25T19:28:06.607936508Z ==> Using Node.js version 22.16.0 (default)
+2025-11-25T19:28:06.632727746Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2025-11-25T19:28:08.518204962Z ==> Running build command 'npm install; npm run build'...
+2025-11-25T19:28:15.91674686Z 
+2025-11-25T19:28:15.916775601Z added 495 packages, and audited 496 packages in 7s
+2025-11-25T19:28:15.916780781Z 
+2025-11-25T19:28:15.916791981Z 66 packages are looking for funding
+2025-11-25T19:28:15.916796451Z   run `npm fund` for details
+2025-11-25T19:28:15.940334264Z 
+2025-11-25T19:28:15.940361455Z 9 vulnerabilities (3 low, 5 moderate, 1 high)
+2025-11-25T19:28:15.940368405Z 
+2025-11-25T19:28:15.940374745Z To address issues that do not require attention, run:
+2025-11-25T19:28:15.940380065Z   npm audit fix
+2025-11-25T19:28:15.940385265Z 
+2025-11-25T19:28:15.940391246Z To address all issues (including breaking changes), run:
+2025-11-25T19:28:15.940397236Z   npm audit fix --force
+2025-11-25T19:28:15.940400746Z 
+2025-11-25T19:28:15.940404926Z Run `npm audit` for details.
+2025-11-25T19:28:16.117866242Z 
+2025-11-25T19:28:16.117890973Z > sentinel-pro@1.0.0 build
+2025-11-25T19:28:16.117897383Z > vite build && esbuild server/index-prod.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+2025-11-25T19:28:16.117903533Z 
+2025-11-25T19:28:16.343184226Z vite v5.4.20 building for production...
+2025-11-25T19:28:16.391538197Z transforming...
+2025-11-25T19:28:17.309325048Z 
+2025-11-25T19:28:17.309345839Z A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+2025-11-25T19:28:20.170400543Z ✓ 2151 modules transformed.
+2025-11-25T19:28:20.467094256Z rendering chunks...
+2025-11-25T19:28:20.474754802Z computing gzip size...
+2025-11-25T19:28:20.489732883Z ../dist/public/index.html                                             0.99 kB │ gzip:   0.54 kB
+2025-11-25T19:28:20.489819086Z ../dist/public/assets/modern_printer_icon_transparent-JedQNrFB.png  392.60 kB
+2025-11-25T19:28:20.489863417Z ../dist/public/assets/index-DY7gJBJo.css                             70.69 kB │ gzip:  11.47 kB
+2025-11-25T19:28:20.489989911Z ../dist/public/assets/index-hukhYJZo.js                             572.37 kB │ gzip: 169.51 kB
+2025-11-25T19:28:20.490046772Z 
+2025-11-25T19:28:20.490055543Z (!) Some chunks are larger than 500 kB after minification. Consider:
+2025-11-25T19:28:20.490062103Z - Using dynamic import() to code-split the application
+2025-11-25T19:28:20.490068093Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2025-11-25T19:28:20.490073623Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2025-11-25T19:28:20.490247168Z ✓ built in 4.13s
+2025-11-25T19:28:20.536629464Z 
+2025-11-25T19:28:20.536674865Z   dist/index.js  35.6kb
+2025-11-25T19:28:20.536677785Z 
+2025-11-25T19:28:20.536680265Z ⚡ Done in 5ms
+2025-11-25T19:28:23.695152293Z ==> Uploading build...
+2025-11-25T19:28:31.786373855Z ==> Uploaded in 5.2s. Compression took 2.9s
+2025-11-25T19:28:31.821763771Z ==> Build successful 🎉
+2025-11-25T19:28:34.481729102Z ==> Deploying...
+2025-11-25T19:29:19.790581582Z ==> Running 'npm run start'
+2025-11-25T19:29:20.881574627Z 
+2025-11-25T19:29:20.881604637Z > sentinel-pro@1.0.0 start
+2025-11-25T19:29:20.881610637Z > NODE_ENV=production node dist/index.js
+2025-11-25T19:29:20.881613127Z 
+2025-11-25T19:29:26.582347367Z ✅ Using PostgreSQL Session Store
+2025-11-25T19:29:27.18376339Z {
+2025-11-25T19:29:27.1837883Z   severity_local: 'NOTICE',
+2025-11-25T19:29:27.18379289Z   severity: 'NOTICE',
+2025-11-25T19:29:27.1837958Z   code: '42P07',
+2025-11-25T19:29:27.18379914Z   message: 'relation "session" already exists, skipping',
+2025-11-25T19:29:27.18380176Z   file: 'parse_utilcmd.c',
+2025-11-25T19:29:27.183804431Z   line: '208',
+2025-11-25T19:29:27.183807061Z   routine: 'transformCreateStmt'
+2025-11-25T19:29:27.183809501Z }
+2025-11-25T19:29:27.212843907Z {
+2025-11-25T19:29:27.212869848Z   severity_local: 'NOTICE',
+2025-11-25T19:29:27.212874588Z   severity: 'NOTICE',
+2025-11-25T19:29:27.212877068Z   code: '42P07',
+2025-11-25T19:29:27.212880078Z   message: 'relation "session_expire_idx" already exists, skipping',
+2025-11-25T19:29:27.212883208Z   file: 'index.c',
+2025-11-25T19:29:27.212885478Z   line: '891',
+2025-11-25T19:29:27.212887938Z   routine: 'index_create'
+2025-11-25T19:29:27.212890058Z }
+2025-11-25T19:29:27.213266845Z ✅ Session table ensured
+2025-11-25T19:29:27.438490233Z {
+2025-11-25T19:29:27.438516143Z   severity_local: 'NOTICE',
+2025-11-25T19:29:27.438521604Z   severity: 'NOTICE',
+2025-11-25T19:29:27.438525193Z   code: '42P07',
+2025-11-25T19:29:27.438529553Z   message: 'relation "companies" already exists, skipping',
+2025-11-25T19:29:27.438532804Z   file: 'parse_utilcmd.c',
+2025-11-25T19:29:27.438536444Z   line: '208',
+2025-11-25T19:29:27.438539804Z   routine: 'transformCreateStmt'
+2025-11-25T19:29:27.438542044Z }
+2025-11-25T19:29:27.578215759Z {
+2025-11-25T19:29:27.57824362Z   severity_local: 'NOTICE',
+2025-11-25T19:29:27.57824849Z   severity: 'NOTICE',
+2025-11-25T19:29:27.57825188Z   code: '42P07',
+2025-11-25T19:29:27.57825591Z   message: 'relation "users" already exists, skipping',
+2025-11-25T19:29:27.57825886Z   file: 'parse_utilcmd.c',
+2025-11-25T19:29:27.5782617Z   line: '208',
+2025-11-25T19:29:27.57826499Z   routine: 'transformCreateStmt'
+2025-11-25T19:29:27.57826836Z }
+2025-11-25T19:29:28.236424083Z {
+2025-11-25T19:29:28.236445013Z   severity_local: 'NOTICE',
+2025-11-25T19:29:28.236449323Z   severity: 'NOTICE',
+2025-11-25T19:29:28.236452473Z   code: '42P07',
+2025-11-25T19:29:28.236455903Z   message: 'relation "printers" already exists, skipping',
+2025-11-25T19:29:28.236458893Z   file: 'parse_utilcmd.c',
+2025-11-25T19:29:28.236461823Z   line: '208',
+2025-11-25T19:29:28.236464443Z   routine: 'transformCreateStmt'
+2025-11-25T19:29:28.236467093Z }
+2025-11-25T19:29:28.280826583Z {
+2025-11-25T19:29:28.280850613Z   severity_local: 'NOTICE',
+2025-11-25T19:29:28.280854743Z   severity: 'NOTICE',
+2025-11-25T19:29:28.280857954Z   code: '42P07',
+2025-11-25T19:29:28.280861283Z   message: 'relation "print_jobs" already exists, skipping',
+2025-11-25T19:29:28.280864034Z   file: 'parse_utilcmd.c',
+2025-11-25T19:29:28.280867014Z   line: '208',
+2025-11-25T19:29:28.280869754Z   routine: 'transformCreateStmt'
+2025-11-25T19:29:28.280872154Z }
+2025-11-25T19:29:28.307767682Z {
+2025-11-25T19:29:28.307790803Z   severity_local: 'NOTICE',
+2025-11-25T19:29:28.307794983Z   severity: 'NOTICE',
+2025-11-25T19:29:28.307798893Z   code: '42P07',
+2025-11-25T19:29:28.307803143Z   message: 'relation "session" already exists, skipping',
+2025-11-25T19:29:28.307824253Z   file: 'parse_utilcmd.c',
+2025-11-25T19:29:28.307827934Z   line: '208',
+2025-11-25T19:29:28.307830963Z   routine: 'transformCreateStmt'
+2025-11-25T19:29:28.307833903Z }
+2025-11-25T19:29:28.308173649Z ✅ Database tables initialized
+2025-11-25T19:29:28.480369394Z 7:29:28 PM [express] serving on port 10000
+2025-11-25T19:29:35.488362634Z ==> Your service is live 🎉
+2025-11-25T19:29:35.528999381Z ==> 
+2025-11-25T19:29:35.565225238Z ==> ///////////////////////////////////////////////////////////
+2025-11-25T19:29:35.601943456Z ==> 
+2025-11-25T19:29:35.637024553Z ==> Available at your primary URL https://sentinelpro.onrender.com
+2025-11-25T19:29:35.67045839Z ==> 
+2025-11-25T19:29:35.705071038Z ==> ///////////////////////////////////////////////////////////
+2025-11-25T19:29:47.847555751Z 7:29:47 PM [express] GET /api/auth/me 401 in 2ms
+2025-11-25T19:29:53.255799479Z ✅ Session regenerated (new): Ls9RQ7RO7kqqkqLkgcQ1EOQuzqgFfUhn
+2025-11-25T19:29:53.25585183Z ✅ Login: User 00000000-0000-0000-0000-000000000001 → Session Ls9RQ7RO7kqqkqLkgcQ1EOQuzqgFfUhn
+2025-11-25T19:29:53.335913415Z ✅ Session saved: Ls9RQ7RO7kqqkqLkgcQ1EOQuzqgFfUhn
+2025-11-25T19:29:53.369501402Z ✅ Session saved: Ls9RQ7RO7kqqkqLkgcQ1EOQuzqgFfUhn
+2025-11-25T19:29:53.370526951Z 7:29:53 PM [express] POST /api/auth/login 200 in 654ms :: {"ok":true}
+2025-11-25T19:29:53.58176577Z 7:29:53 PM [express] GET /api/auth/me 401 in 1ms

@@ -1,0 +1,106 @@
+2025-11-25T20:35:40.024410926Z 66 packages are looking for funding
+2025-11-25T20:35:40.024442846Z   run `npm fund` for details
+2025-11-25T20:35:40.044951141Z 
+2025-11-25T20:35:40.044963771Z 9 vulnerabilities (3 low, 5 moderate, 1 high)
+2025-11-25T20:35:40.044967032Z 
+2025-11-25T20:35:40.044970772Z To address issues that do not require attention, run:
+2025-11-25T20:35:40.044973832Z   npm audit fix
+2025-11-25T20:35:40.044976652Z 
+2025-11-25T20:35:40.044979522Z To address all issues (including breaking changes), run:
+2025-11-25T20:35:40.044982902Z   npm audit fix --force
+2025-11-25T20:35:40.044985632Z 
+2025-11-25T20:35:40.044989042Z Run `npm audit` for details.
+2025-11-25T20:35:40.209249516Z 
+2025-11-25T20:35:40.209272406Z > sentinel-pro@1.0.0 build
+2025-11-25T20:35:40.209277546Z > vite build && esbuild server/index-prod.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js
+2025-11-25T20:35:40.209282407Z 
+2025-11-25T20:35:40.387434332Z vite v5.4.20 building for production...
+2025-11-25T20:35:40.433415615Z transforming...
+2025-11-25T20:35:41.293386446Z 
+2025-11-25T20:35:41.293414736Z A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+2025-11-25T20:35:44.03906883Z ✓ 2151 modules transformed.
+2025-11-25T20:35:44.325246865Z rendering chunks...
+2025-11-25T20:35:44.333109259Z computing gzip size...
+2025-11-25T20:35:44.348043567Z ../dist/public/index.html                                             0.99 kB │ gzip:   0.54 kB
+2025-11-25T20:35:44.348146769Z ../dist/public/assets/modern_printer_icon_transparent-JedQNrFB.png  392.60 kB
+2025-11-25T20:35:44.348220221Z ../dist/public/assets/index-DY7gJBJo.css                             70.69 kB │ gzip:  11.47 kB
+2025-11-25T20:35:44.348391315Z ../dist/public/assets/index-BOO-9P8s.js                             572.70 kB │ gzip: 169.53 kB
+2025-11-25T20:35:44.348456647Z 
+2025-11-25T20:35:44.348463517Z (!) Some chunks are larger than 500 kB after minification. Consider:
+2025-11-25T20:35:44.348468227Z - Using dynamic import() to code-split the application
+2025-11-25T20:35:44.348472757Z - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+2025-11-25T20:35:44.348476787Z - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+2025-11-25T20:35:44.348671762Z ✓ built in 3.94s
+2025-11-25T20:35:44.393933966Z 
+2025-11-25T20:35:44.393971377Z   dist/index.js  29.7kb
+2025-11-25T20:35:44.393974307Z 
+2025-11-25T20:35:44.393976957Z ⚡ Done in 5ms
+2025-11-25T20:35:46.019884734Z ==> Uploading build...
+2025-11-25T20:35:56.119847516Z ==> Uploaded in 7.0s. Compression took 3.1s
+2025-11-25T20:35:56.18133287Z ==> Build successful 🎉
+2025-11-25T20:35:58.743312613Z ==> Deploying...
+2025-11-25T20:36:16.74455834Z ==> Running 'npm run start'
+2025-11-25T20:36:17.841614644Z 
+2025-11-25T20:36:17.841643704Z > sentinel-pro@1.0.0 start
+2025-11-25T20:36:17.841647815Z > NODE_ENV=production node dist/index.js
+2025-11-25T20:36:17.841650015Z 
+2025-11-25T20:36:24.449685293Z {
+2025-11-25T20:36:24.449721004Z   severity_local: 'NOTICE',
+2025-11-25T20:36:24.449726314Z   severity: 'NOTICE',
+2025-11-25T20:36:24.449730544Z   code: '42P07',
+2025-11-25T20:36:24.449735184Z   message: 'relation "companies" already exists, skipping',
+2025-11-25T20:36:24.449738984Z   file: 'parse_utilcmd.c',
+2025-11-25T20:36:24.449742785Z   line: '208',
+2025-11-25T20:36:24.449746625Z   routine: 'transformCreateStmt'
+2025-11-25T20:36:24.449750375Z }
+2025-11-25T20:36:24.480104292Z {
+2025-11-25T20:36:24.480126603Z   severity_local: 'NOTICE',
+2025-11-25T20:36:24.480132053Z   severity: 'NOTICE',
+2025-11-25T20:36:24.480136033Z   code: '42P07',
+2025-11-25T20:36:24.480140773Z   message: 'relation "users" already exists, skipping',
+2025-11-25T20:36:24.480144663Z   file: 'parse_utilcmd.c',
+2025-11-25T20:36:24.480148373Z   line: '208',
+2025-11-25T20:36:24.480152113Z   routine: 'transformCreateStmt'
+2025-11-25T20:36:24.480155764Z }
+2025-11-25T20:36:24.903435397Z {
+2025-11-25T20:36:24.903506029Z   severity_local: 'NOTICE',
+2025-11-25T20:36:24.903513809Z   severity: 'NOTICE',
+2025-11-25T20:36:24.903518299Z   code: '42P07',
+2025-11-25T20:36:24.90352363Z   message: 'relation "printers" already exists, skipping',
+2025-11-25T20:36:24.90352771Z   file: 'parse_utilcmd.c',
+2025-11-25T20:36:24.90353207Z   line: '208',
+2025-11-25T20:36:24.90353637Z   routine: 'transformCreateStmt'
+2025-11-25T20:36:24.90354087Z }
+2025-11-25T20:36:24.933508818Z {
+2025-11-25T20:36:24.933533969Z   severity_local: 'NOTICE',
+2025-11-25T20:36:24.933539799Z   severity: 'NOTICE',
+2025-11-25T20:36:24.933544339Z   code: '42P07',
+2025-11-25T20:36:24.933549399Z   message: 'relation "print_jobs" already exists, skipping',
+2025-11-25T20:36:24.933554229Z   file: 'parse_utilcmd.c',
+2025-11-25T20:36:24.933558729Z   line: '208',
+2025-11-25T20:36:24.93356292Z   routine: 'transformCreateStmt'
+2025-11-25T20:36:24.93356712Z }
+2025-11-25T20:36:24.966779676Z {
+2025-11-25T20:36:24.966801147Z   severity_local: 'NOTICE',
+2025-11-25T20:36:24.966808797Z   severity: 'NOTICE',
+2025-11-25T20:36:24.966813937Z   code: '42P07',
+2025-11-25T20:36:24.966818848Z   message: 'relation "session" already exists, skipping',
+2025-11-25T20:36:24.966823057Z   file: 'parse_utilcmd.c',
+2025-11-25T20:36:24.966827058Z   line: '208',
+2025-11-25T20:36:24.966831058Z   routine: 'transformCreateStmt'
+2025-11-25T20:36:24.966835648Z }
+2025-11-25T20:36:24.967068743Z ✅ Database tables initialized
+2025-11-25T20:36:25.05171007Z 8:36:25 PM [express] serving on port 10000
+2025-11-25T20:36:29.705023447Z ==> Your service is live 🎉
+2025-11-25T20:36:29.738827944Z ==> 
+2025-11-25T20:36:29.771744041Z ==> ///////////////////////////////////////////////////////////
+2025-11-25T20:36:29.804779668Z ==> 
+2025-11-25T20:36:29.837722066Z ==> Available at your primary URL https://sentinelpro.onrender.com
+2025-11-25T20:36:29.871520834Z ==> 
+2025-11-25T20:36:29.903822781Z ==> ///////////////////////////////////////////////////////////
+2025-11-25T20:37:40.643378811Z ✅ Login: User 00000000-0000-0000-0000-000000000001 → JWT Token generated
+2025-11-25T20:37:40.644989581Z 8:37:40 PM [express] POST /api/auth/login 200 in 439ms :: {"ok":true,"token":"eyJhbGciOiJIUzI1NiIsIn…
+2025-11-25T20:37:40.945993774Z 8:37:40 PM [express] GET /api/auth/me 200 in 63ms :: {"id":"00000000-0000-0000-0000-000000000001","u…
+2025-11-25T20:37:41.328628001Z 8:37:41 PM [express] GET /api/dashboard 200 in 168ms :: {"totalPrintJobs":0,"totalUsers":0,"totalPri…
+2025-11-25T20:38:31.118343816Z 8:38:31 PM [express] GET /api/auth/me 304 in 80ms :: {"id":"00000000-0000-0000-0000-000000000001","u…
+2025-11-25T20:38:31.457868805Z 8:38:31 PM [express] GET /api/users 200 in 89ms :: []

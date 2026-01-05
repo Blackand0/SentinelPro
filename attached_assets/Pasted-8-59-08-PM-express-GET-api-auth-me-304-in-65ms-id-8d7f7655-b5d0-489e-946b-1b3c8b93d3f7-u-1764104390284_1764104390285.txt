@@ -1,0 +1,60 @@
+8:59:08 PM [express] GET /api/auth/me 304 in 65ms :: {"id":"8d7f7655-b5d0-489e-946b-1b3c8b93d3f7","u…
+Get dashboard stats error: PostgresError: column "company_id" does not exist
+    at ErrorResponse (file:///opt/render/project/src/node_modules/postgres/src/connection.js:794:26)
+    at handle (file:///opt/render/project/src/node_modules/postgres/src/connection.js:480:6)
+    at TLSSocket.data (file:///opt/render/project/src/node_modules/postgres/src/connection.js:315:9)
+    at TLSSocket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:189:23) {
+  severity_local: 'ERROR',
+  severity: 'ERROR',
+  code: '42703',
+  position: '57',
+  file: 'parse_relation.c',
+  line: '3822',
+  routine: 'errorMissingColumn'
+}
+8:59:08 PM [express] GET /api/dashboard 500 in 180ms
+8:59:16 PM [express] POST /api/auth/logout 200 in 4ms :: {"ok":true}
+✅ Login: User bdc4a2fc-334a-46ce-9784-efa6b8f7c401 → JWT Token generated
+8:59:22 PM [express] POST /api/auth/login 200 in 375ms :: {"ok":true,"token":"eyJhbGciOiJIUzI1NiIsIn…
+8:59:23 PM [express] GET /api/auth/me 200 in 57ms :: {"id":"bdc4a2fc-334a-46ce-9784-efa6b8f7c401","u…
+Get dashboard stats error: PostgresError: column "company_id" does not exist
+    at ErrorResponse (file:///opt/render/project/src/node_modules/postgres/src/connection.js:794:26)
+    at handle (file:///opt/render/project/src/node_modules/postgres/src/connection.js:480:6)
+    at TLSSocket.data (file:///opt/render/project/src/node_modules/postgres/src/connection.js:315:9)
+    at TLSSocket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:189:23) {
+  severity_local: 'ERROR',
+  severity: 'ERROR',
+  code: '42703',
+  position: '57',
+  file: 'parse_relation.c',
+  line: '3822',
+  routine: 'errorMissingColumn'
+}
+8:59:23 PM [express] GET /api/dashboard 500 in 189ms
+8:59:29 PM [express] GET /api/auth/me 304 in 63ms :: {"id":"bdc4a2fc-334a-46ce-9784-efa6b8f7c401","u…
+Get printers error: PostgresError: column "company_id" does not exist
+    at ErrorResponse (file:///opt/render/project/src/node_modules/postgres/src/connection.js:794:26)
+    at handle (file:///opt/render/project/src/node_modules/postgres/src/connection.js:480:6)
+    at TLSSocket.data (file:///opt/render/project/src/node_modules/postgres/src/connection.js:315:9)
+    at TLSSocket.emit (node:events:518:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TLSWrap.onStreamRead (node:internal/stream_base_commons:189:23) {
+  severity_local: 'ERROR',
+  severity: 'ERROR',
+  code: '42703',
+  position: '57',
+  file: 'parse_relation.c',
+  line: '3822',
+  routine: 'errorMissingColumn'
+}
+8:59:29 PM [express] GET /api/printers 500 in 216ms

@@ -1,0 +1,43 @@
+Login error: TypeError: this[#pool].query is not a function
+    at PGStore._asyncQuery (/opt/render/project/src/node_modules/connect-pg-simple/index.js:322:38)
+5:45:51 PM [express] POST /api/auth/login 500 in 467ms
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at ServerResponse.setHeader (node:_http_outgoing:699:11)
+    at ServerResponse.header (/opt/render/project/src/node_modules/express/lib/response.js:794:10)
+    at ServerResponse.send (/opt/render/project/src/node_modules/express/lib/response.js:174:12)
+    at ServerResponse.json (/opt/render/project/src/node_modules/express/lib/response.js:278:15)
+    at res.json (file:///opt/render/project/src/dist/index.js:859:28)
+    at file:///opt/render/project/src/dist/index.js:881:24
+    at Layer.handle_error (/opt/render/project/src/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/opt/render/project/src/node_modules/express/lib/router/index.js:326:13)
+    at /opt/render/project/src/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/opt/render/project/src/node_modules/express/lib/router/index.js:346:12)
+Login error: TypeError: this[#pool].query is not a function
+    at PGStore._asyncQuery (/opt/render/project/src/node_modules/connect-pg-simple/index.js:322:38)
+5:45:53 PM [express] POST /api/auth/login 500 in 429ms
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at ServerResponse.setHeader (node:_http_outgoing:699:11)
+    at ServerResponse.header (/opt/render/project/src/node_modules/express/lib/response.js:794:10)
+    at ServerResponse.send (/opt/render/project/src/node_modules/express/lib/response.js:174:12)
+    at ServerResponse.json (/opt/render/project/src/node_modules/express/lib/response.js:278:15)
+    at res.json (file:///opt/render/project/src/dist/index.js:859:28)
+    at file:///opt/render/project/src/dist/index.js:881:24
+    at Layer.handle_error (/opt/render/project/src/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/opt/render/project/src/node_modules/express/lib/router/index.js:326:13)
+    at /opt/render/project/src/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/opt/render/project/src/node_modules/express/lib/router/index.js:346:12)
+Login error: TypeError: this[#pool].query is not a function
+    at PGStore._asyncQuery (/opt/render/project/src/node_modules/connect-pg-simple/index.js:322:38)
+5:46:00 PM [express] POST /api/auth/login 500 in 389ms
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at ServerResponse.setHeader (node:_http_outgoing:699:11)
+    at ServerResponse.header (/opt/render/project/src/node_modules/express/lib/response.js:794:10)
+    at ServerResponse.send (/opt/render/project/src/node_modules/express/lib/response.js:174:12)
+    at ServerResponse.json (/opt/render/project/src/node_modules/express/lib/response.js:278:15)
+    at res.json (file:///opt/render/project/src/dist/index.js:859:28)
+    at file:///opt/render/project/src/dist/index.js:881:24
+    at Layer.handle_error (/opt/render/project/src/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/opt/render/project/src/node_modules/express/lib/router/index.js:326:13)
+    at /opt/render/project/src/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/opt/render/project/src/node_modules/express/lib/router/index.js:346:12)
+Need better ways to work with logs? Try theRe
