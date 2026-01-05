@@ -23,11 +23,15 @@ import {
 } from "@/components/ui/select";
 import type { PrintJobWithDetails } from "@shared/schema";
 import { formatDistanceToNow, format } from "date-fns";
+import { useAuth } from "@/lib/auth";
 
 export default function PrintJobsPage() {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [colorFilter, setColorFilter] = useState<string>("all");
+
+  const canCreateJobs = user?.role !== "viewer";
 
   const { data: jobs, isLoading } = useQuery<PrintJobWithDetails[]>({
     queryKey: ["/api/print-jobs"],
@@ -63,12 +67,14 @@ export default function PrintJobsPage() {
             Ver y gestionar todos los trabajos de impresión
           </p>
         </div>
-        <Button asChild data-testid="button-new-print-job">
-          <a href="/print-jobs/new">
-            <FileText className="mr-2 h-4 w-4" />
-            Nuevo Trabajo
-          </a>
-        </Button>
+        {canCreateJobs && (
+          <Button asChild data-testid="button-new-print-job">
+            <a href="/print-jobs/new">
+              <FileText className="mr-2 h-4 w-4" />
+              Nuevo Trabajo
+            </a>
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -243,7 +249,7 @@ export default function PrintJobsPage() {
                   ? "Intenta ajustar los filtros"
                   : "Comienza creando tu primer trabajo de impresión"}
               </p>
-              {!searchQuery && statusFilter === "all" && colorFilter === "all" && (
+              {!searchQuery && statusFilter === "all" && colorFilter === "all" && canCreateJobs && (
                 <Button asChild className="mt-4">
                   <a href="/print-jobs/new">Crear Trabajo</a>
                 </Button>
