@@ -54,8 +54,10 @@ export async function requireAuth(
   res: Response,
   next: NextFunction
 ) {
+  console.log(`🔍 requireAuth called for: ${req.path}`);
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.log(`❌ No auth header or invalid format`);
     return res.status(401).send("Unauthorized");
   }
 
@@ -64,7 +66,7 @@ export async function requireAuth(
 
   try {
     const decoded = jwt.verify(token, secret) as { userId: string };
-    await sql`SELECT set_security_context(null, 'super-admin')`;
+    console.log(`🔐 JWT verified for userId: ${decoded.userId}`);
 
     const user = await storage.getUser(decoded.userId);
     if (!user) {
@@ -72,21 +74,9 @@ export async function requireAuth(
       return res.status(401).send("Unauthorized");
     }
 
-    console.log(`✅ User found in requireAuth: ${user.username}, role: ${user.role}`);
+    console.log(`✅ User found: ${user.username}, role: ${user.role}, companyId: ${user.companyId}`);
     const { password, ...userWithoutPassword } = user;
     req.user = userWithoutPassword;
-
-    try {
-      await sql`SELECT set_security_context(${user.companyId || null}, ${user.role})`;
-
-      await sql`
-        SELECT set_config('app.current_user_id', ${user.id}, false),
-               set_config('app.client_ip', ${req.ip || req.connection.remoteAddress || ''}, false),
-               set_config('app.user_agent', ${req.get('User-Agent') || ''}, false)
-      `;
-    } catch (rlsError) {
-      console.error('Error setting RLS context:', rlsError);
-    }
 
     next();
   } catch (err) {
