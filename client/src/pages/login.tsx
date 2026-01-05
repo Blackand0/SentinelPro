@@ -47,8 +47,11 @@ export default function LoginPage() {
       return await apiRequest<{ ok: boolean; token: string }>("POST", "/api/auth/login", data);
     },
     onSuccess: async (response) => {
+      console.log("✅ Frontend: Login successful, token received");
       localStorage.setItem("authToken", response.token);
+      console.log("✅ Frontend: Token saved to localStorage");
       await login();
+      console.log("✅ Frontend: Auth verification completed");
       toast({
         title: "Inicio de sesión exitoso",
         description: "¡Bienvenido de vuelta!",
