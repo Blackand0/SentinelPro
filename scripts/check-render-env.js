@@ -82,6 +82,24 @@ try {
   allRequiredPresent = false;
 }
 
+// Verificar que se está usando la URL correcta para el entorno
+console.log('\n🔍 Verificando configuración de URL para el entorno...');
+const isRender = process.env.RENDER || process.env.NODE_ENV === 'production';
+const isInternalUrl = databaseUrl.includes('.oregon-postgres.render.com') === false &&
+                     databaseUrl.includes('dpg-') && databaseUrl.includes('@dpg-');
+
+if (isRender && !isInternalUrl) {
+  console.log(`  ⚠️  ADVERTENCIA: En Render deberías usar la Internal Database URL`);
+  console.log(`     Actualmente usando: External URL (.render.com)`);
+  console.log(`     Recomendado: Internal URL (sin .render.com)`);
+} else if (!isRender && isInternalUrl) {
+  console.log(`  ⚠️  ADVERTENCIA: Para desarrollo local usa la External Database URL`);
+  console.log(`     Actualmente usando: Internal URL`);
+  console.log(`     Recomendado: External URL (con .render.com)`);
+} else {
+  console.log(`  ✅ URL correcta para el entorno actual`);
+}
+
 console.log('\n' + '='.repeat(50));
 if (allRequiredPresent) {
   console.log('✅ Configuración para Render VERIFICADA correctamente');

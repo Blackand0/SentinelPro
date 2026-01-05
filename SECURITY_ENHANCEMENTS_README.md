@@ -36,9 +36,20 @@ El proyecto está configurado para desplegarse automáticamente en Render con Po
 
 **Configuración requerida en Render:**
 1. Crear una base de datos PostgreSQL en Render
-2. La `DATABASE_URL` se configura automáticamente
+2. **IMPORTANTE:** Configurar `DATABASE_URL` con la **Internal Database URL**
+   - ❌ NO uses: `postgresql://...render.com/...` (External)
+   - ✅ SÍ usa: `postgresql://postgres_...@dpg-...-a/postgres_...` (Internal)
 3. El `SESSION_SECRET` se genera automáticamente
 4. El script de build ejecuta todas las migraciones automáticamente
+
+**URLs de ejemplo para tu base de datos:**
+```bash
+# ✅ CORRECTA para producción en Render (Internal)
+DATABASE_URL="postgresql://postgres_j8bo_user:SoFhBlwPc0b01qnBV3uhuMpH3hQ3IzoM@dpg-d5e3eivpm1nc73cd7f3g-a/postgres_j8bo"
+
+# ❌ INCORRECTA para producción (External - solo para desarrollo local)
+DATABASE_URL="postgresql://postgres_j8bo_user:SoFhBlwPc0b01qnBV3uhuMpH3hQ3IzoM@dpg-d5e3eivpm1nc73cd7f3g-a.oregon-postgres.render.com/postgres_j8bo"
+```
 
 **Verificación pre-despliegue:**
 ```bash

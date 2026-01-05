@@ -164,6 +164,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ ok: true });
   });
 
+  // Debug endpoint para verificar login
+  app.post("/api/auth/debug-login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+
+      console.log(`🔍 Debug login attempt for user: ${username}`);
+
+      const user = await storage.getUserByUsername(username);
+      if (!user) {
+        console.log(`❌ User ${username} not found`);
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      console.log(`✅ User found: ${user.username}, role: ${user.role}, companyId: ${user.companyId}`);
+
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) {
+        console.log(`❌ Invalid password for user ${username}`);
+        return res.status(401).json({ error: "Invalid password" });
+      }
+
+      console.log(`✅ Password valid, generating token for user ${user.id}`);
+
+      const secret = process.env.SESSION_SECRET || "sentinel-pro-dev-secret-change-for-production";
+      const token = jwt.sign({ userId: user.id }, secret, { expiresIn: "7d" });
+
+      console.log(`✅ Token generated successfully`);
+
+      res.json({
+        ok: true,
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          companyId: user.companyId
+        }
+      });
+    } catch (error) {
+      console.error("Debug login error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.get("/api/auth/me", requireAuth, clearSecurityContext, (req, res) => {
     res.json(req.user);
   });

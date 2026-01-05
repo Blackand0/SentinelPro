@@ -12,7 +12,8 @@
     "db:migrate:rls": "node migrations/run_migration.js migrations/001_rls_security_migration.sql",
     "db:migrate:rls-fix": "node migrations/run_migration.js migrations/002_rls_superadmin_fix.sql",
     "db:verify:rls": "node scripts/verify_rls.js",
-    "render:check": "node scripts/check-render-env.js"
+    "render:check": "node scripts/check-render-env.js",
+    "test:login": "node scripts/test-login.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
