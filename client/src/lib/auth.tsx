@@ -67,10 +67,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       if (response.ok) {
         const serverUser = await response.json();
-        console.log("✅ Frontend: User authenticated successfully", serverUser);
         setUser(serverUser);
       } else {
-        console.log("❌ Frontend: Auth verification failed", response.status, response.statusText);
         localStorage.removeItem("authToken");
         setUser(null);
       }
